@@ -1,0 +1,133 @@
+# Experiment
+experiment:
+  name: "mandarin-tone-subspaces-wav2vec"
+  output_dir: "./results_mandarin_tone_subspaces"
+  seed: 42
+  train_size: 0.8
+  ratio_dev_test: 0.5
+
+# Data
+data:
+  root_dir: "./data/"
+  audio_mp3_dir: "./data/tone_perfect_mp3/"
+  audio_xml_dir: "./data/tone_perfect_xml/"
+  metadata_path: "./data/metadata.csv"
+  audio_col: "audio_path"
+  label_col: "tone"
+  speaker_col: "speaker_id"
+  syllable_col: "syllable"
+  tone_values: [1, 2, 3, 4]
+  sample_rate: 16000
+  use_vowel_region: false
+  vowel_start_col: null
+  vowel_end_col: null
+
+# Models
+model:
+  name: "facebook/wav2vec2-base"
+  num_labels: 4
+  output_hidden_states: true
+
+# for pytorch
+torch:
+  dtype: "float32"
+  device: "cpu"
+
+optimizer:
+  name: "adamw"
+  lr: 1.0e-4
+  weight_decay: 0.01
+
+scheduler:
+  name: "linear"
+  warmup_steps: 0
+
+# Training / Probe
+task:
+  num_classes: 4
+  batch_size: 16
+  num_epochs: 10
+  learning_rate: 1.0e-4
+  freeze_encoder: true
+  probe_type: "linear"
+  pooling: "mean"
+  region_strategy: "all_frames"   # options: all_frames, middle_60, vowel_only, early_middle_late
+  evaluate_all_layers: true
+
+# Feature extraction
+features:
+  extract_hidden_states: true
+  save_hidden_states: true
+  hidden_state_dir: "./features/hidden_states/"
+  layers: "all"                   # or e.g. [1,2,3,4,5,6,7]
+  normalize_audio: true
+  trim_silence: false
+  time_pooling: "mean"
+
+# PCA
+pca:
+  enabled: true
+  center: true
+  n_components_list: [1, 2, 4, 8, 16]
+  fit_on: "train"
+  evaluate_separability: true
+  separability_metric: "probe_accuracy"   # options: probe_accuracy, silhouette, fisher_ratio
+  save_projected_features: true
+  projected_dir: "./features/pca_projected/"
+
+# Intervention
+intervention:
+  enabled: true
+  source_target_strategy: "different_tone_same_syllable"
+  patch_level: "token"            # options: token, frame
+  patch_method: "replace"         # options: replace, interpolate, scale
+  alpha: 1.0
+  measure_logit_shift: true
+  measure_prediction_flip: true
+  measure_representation_shift: true
+
+# DAS
+das:
+  enabled: true
+  subspace_dim_list: [1, 2, 4, 8, 16]
+  fit_on: "train"
+  num_epochs: 10
+  learning_rate: 1.0e-3
+  weight_decay: 0.0
+  alignment_object: "linear"
+  optimize_for: "intervention_success"
+  save_subspaces: true
+  subspace_dir: "./features/das_subspaces/"
+
+# Comparison
+comparison:
+  compare_across_layers: true
+  compare_across_dimensions: true
+  metrics:
+    - "probe_accuracy"
+    - "intervention_success"
+    - "logit_shift"
+    - "prediction_flip"
+    - "representation_shift"
+    - "subspace_overlap"
+  overlap_metric: "principal_angles"   # options: principal_angles, frobenius_overlap, cosine_matrix
+
+# Tokenizer / Processor
+processor:
+  name: "facebook/wav2vec2-base"
+  return_tensors: "pt"
+  padding: true
+  sampling_rate: 16000
+
+# Output
+output:
+  save_probes: true
+  probe_dir: "./artifacts/probes/"
+  save_pca_models: true
+  pca_dir: "./artifacts/pca/"
+  save_das_models: true
+  das_dir: "./artifacts/das/"
+  save_plots: true
+  plot_dir: "./artifacts/plots/"
+  save_metrics_csv: true
+  metrics_path: "./artifacts/metrics.csv"
