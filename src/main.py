@@ -1,14 +1,19 @@
 from pathlib import Path
 import yaml
 from data import convert_wav, build_metadata
+from preprocess import hs_extraction
 
 def load_yaml(path): # "config.yaml"
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 def run_main(cfg):
+    # Convert mp3 to wav
     wav_dir = convert_wav(cfg)
-    build_metadata(cfg, wav_dir)
+
+    # Make a csv file for preprocessing and metadata
+    df = build_metadata(cfg, wav_dir)
+    hidden_states = hs_extraction(df)
 
 if __name__ == "__main__":
     ROOT = Path(__file__).resolve().parents[1]

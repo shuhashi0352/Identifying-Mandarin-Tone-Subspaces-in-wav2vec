@@ -5,12 +5,6 @@ description = ""
 readme = "README.md"
 requires-python = ">=3.10,<3.14"
 authors = ["Shusuke Hashimoto <shuhashi@iu.edu>"]
-
-[[tool.uv.index]]
-name = "pytorch-cpu"
-url = "https://download.pytorch.org/whl/cpu"
-explicit = true
-
 dependencies = [
   "torch==2.7.0",
   "torchaudio==2.7.0",
@@ -24,6 +18,11 @@ dependencies = [
   "librosa>=0.10,<1",
   "matplotlib>=3.8,<4",
 ]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
 
 [tool.uv.sources]
 torch = { index = "pytorch-cpu" }
