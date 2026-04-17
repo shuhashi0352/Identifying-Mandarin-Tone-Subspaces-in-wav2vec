@@ -2,6 +2,8 @@ from transformers import Wav2Vec2Processor, Wav2Vec2Model
 import torchaudio
 import torch
 from tqdm import tqdm
+from pathlib import Path
+from praatio import textgrid
 
 def preprocess(df):
     processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base")
@@ -36,6 +38,10 @@ def preprocess(df):
         })
         
     return data
+
+def parse_text_interval(textgrid_path):
+    tg = textgrid.openTextgrid(str(textgrid_path), includeEmptyIntervals=True)
+    tier = tg.tierDict["phones"]
 
 def hs_extraction(df):
     model = Wav2Vec2Model.from_pretrained("facebook/wav2vec2-base")

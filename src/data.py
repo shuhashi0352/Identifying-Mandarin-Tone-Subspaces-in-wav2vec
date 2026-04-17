@@ -106,6 +106,20 @@ def build_metadata(cfg, wav_dir):
     df.to_csv("data/metadata.csv", index=False, encoding="utf-8")
 
     return df
+
+def build_mfa_lab(df):
+    wav_dir = Path("data/tone_perfect_wav")
+
+    for _, row in df.iterrows():
+        wav_csv_path = Path(row["wav_path"])
+        lab_file = wav_dir / wav_csv_path.name
+        
+        # create transcript
+        transcript = f"{row['sound']}"
+        
+        lab_path = lab_file.with_suffix(".lab")
+        with open(lab_path, "w", encoding="utf-8") as f:
+            f.write(transcript)
     
 def split_df(cfg, df):
 

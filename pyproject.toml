@@ -10,6 +10,7 @@ dependencies = [
   "torchaudio==2.7.0",
   "transformers>=4.40,<5",
   "scikit-learn>=1.4,<2",
+  "montreal-forced-aligner==3.3.9",
   "numpy>=1.26,<3",
   "scipy>=1.12,<2",
   "pandas>=2.2,<3",
@@ -17,6 +18,8 @@ dependencies = [
   "soundfile>=0.12,<1",
   "librosa>=0.10,<1",
   "matplotlib>=3.8,<4",
+  "praatio>=6.0,<7",
+  "pinyin-to-ipa==1.0.0",
 ]
 
 [[tool.uv.index]]

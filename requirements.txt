@@ -165,10 +165,19 @@ charset-normalizer==3.4.6 \
     --hash=sha256:f6e4333fb15c83f7d1482a76d45a0818897b3d33f00efd215528ff7c51b8e35d \
     --hash=sha256:f820f24b09e3e779fe84c3c456cb4108a7aa639b0d1f02c28046e11bfcd088ed
     # via requests
+click==8.3.2 \
+    --hash=sha256:14162b8b3b3550a7d479eafa77dfd3c38d9dc8951f6f69c78913a8f9a7540fd5 \
+    --hash=sha256:1924d2c27c5653561cd2cae4548d1406039cb79b858b747cfea24924bbc1616d
+    # via
+    #   montreal-forced-aligner
+    #   rich-click
 colorama==0.4.6 ; sys_platform == 'win32' \
     --hash=sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44 \
     --hash=sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6
-    # via tqdm
+    # via
+    #   click
+    #   rich-click
+    #   tqdm
 contourpy==1.3.2 ; python_full_version < '3.11' \
     --hash=sha256:0475b1f6604896bc7c53bb070e355e9321e1bc0d381735421a2d2068ec56531f \
     --hash=sha256:106fab697af11456fcba3e352ad50effe493a90f893fca6c2ca5c033820cea92 \
@@ -337,6 +346,44 @@ fsspec==2026.3.0 \
     # via
     #   huggingface-hub
     #   torch
+greenlet==3.3.2 ; platform_machine == 'AMD64' or platform_machine == 'WIN32' or platform_machine == 'aarch64' or platform_machine == 'amd64' or platform_machine == 'ppc64le' or platform_machine == 'win32' or platform_machine == 'x86_64' \
+    --hash=sha256:02b0a8682aecd4d3c6c18edf52bc8e51eacdd75c8eac52a790a210b06aa295fd \
+    --hash=sha256:1a9172f5bf6bd88e6ba5a84e0a68afeac9dc7b6b412b245dd64f52d83c81e55b \
+    --hash=sha256:1e692b2dae4cc7077cbb11b47d258533b48c8fde69a33d0d8a82e2fe8d8531d5 \
+    --hash=sha256:1ebd458fa8285960f382841da585e02201b53a5ec2bac6b156fc623b5ce4499f \
+    --hash=sha256:2eaf067fc6d886931c7962e8c6bede15d2f01965560f3359b27c80bde2d151f2 \
+    --hash=sha256:34308836d8370bddadb41f5a7ce96879b72e2fdfb4e87729330c6ab52376409f \
+    --hash=sha256:394ead29063ee3515b4e775216cb756b2e3b4a7e55ae8fd884f17fa579e6b327 \
+    --hash=sha256:3ceec72030dae6ac0c8ed7591b96b70410a8be370b6a477b1dbc072856ad02bd \
+    --hash=sha256:4375a58e49522698d3e70cc0b801c19433021b5c37686f7ce9c65b0d5c8677d2 \
+    --hash=sha256:43e99d1749147ac21dde49b99c9abffcbc1e2d55c67501465ef0930d6e78e070 \
+    --hash=sha256:442b6057453c8cb29b4fb36a2ac689382fc71112273726e2423f7f17dc73bf99 \
+    --hash=sha256:45abe8eb6339518180d5a7fa47fa01945414d7cca5ecb745346fc6a87d2750be \
+    --hash=sha256:4c956a19350e2c37f2c48b336a3afb4bff120b36076d9d7fb68cb44e05d95b79 \
+    --hash=sha256:508c7f01f1791fbc8e011bd508f6794cb95397fdb198a46cb6635eb5b78d85a7 \
+    --hash=sha256:527fec58dc9f90efd594b9b700662ed3fb2493c2122067ac9c740d98080a620e \
+    --hash=sha256:5d0e35379f93a6d0222de929a25ab47b5eb35b5ef4721c2b9cbcc4036129ff1f \
+    --hash=sha256:64970c33a50551c7c50491671265d8954046cb6e8e2999aacdd60e439b70418a \
+    --hash=sha256:6c6f8ba97d17a1e7d664151284cb3315fc5f8353e75221ed4324f84eb162b395 \
+    --hash=sha256:8c1fdd7d1b309ff0da81d60a9688a8bd044ac4e18b250320a96fc68d31c209ca \
+    --hash=sha256:8e2cd90d413acbf5e77ae41e5d3c9b3ac1d011a756d7284d7f3f2b806bbd6358 \
+    --hash=sha256:97245cc10e5515dbc8c3104b2928f7f02b6813002770cfaffaf9a6e0fc2b94ef \
+    --hash=sha256:9bc885b89709d901859cf95179ec9f6bb67a3d2bb1f0e88456461bd4b7f8fd0d \
+    --hash=sha256:a2a5be83a45ce6188c045bcc44b0ee037d6a518978de9a5d97438548b953a1ac \
+    --hash=sha256:a443358b33c4ec7b05b79a7c8b466f5d275025e750298be7340f8fc63dff2a55 \
+    --hash=sha256:a7945dd0eab63ded0a48e4dcade82939783c172290a7903ebde9e184333ca124 \
+    --hash=sha256:aa6ac98bdfd716a749b84d4034486863fd81c3abde9aa3cf8eff9127981a4ae4 \
+    --hash=sha256:ab0c7e7901a00bc0a7284907273dc165b32e0d109a6713babd04471327ff7986 \
+    --hash=sha256:ac8d61d4343b799d1e526db579833d72f23759c71e07181c2d2944e429eb09cd \
+    --hash=sha256:ad0c8917dd42a819fe77e6bdfcb84e3379c0de956469301d9fd36427a1ca501f \
+    --hash=sha256:ae9e21c84035c490506c17002f5c8ab25f980205c3e61ddb3a2a2a2e6c411fcb \
+    --hash=sha256:b568183cf65b94919be4438dc28416b234b678c608cafac8874dfeeb2a9bbe13 \
+    --hash=sha256:b6997d360a4e6a4e936c0f9625b1c20416b8a0ea18a8e19cabbefc712e7397ab \
+    --hash=sha256:c56692189a7d1c7606cb794be0a8381470d95c57ce5be03fb3d0ef57c7853b86 \
+    --hash=sha256:ccd21bb86944ca9be6d967cf7691e658e43417782bce90b5d2faeda0ff78a7dd \
+    --hash=sha256:d248d8c23c67d2291ffd47af766e2a3aa9fa1c6703155c099feb11f526c63a92 \
+    --hash=sha256:d3a62fa76a32b462a97198e4c9e99afb9ab375115e74e9a83ce180e7a496f643
+    # via sqlalchemy
 hf-xet==1.4.2 ; platform_machine == 'aarch64' or platform_machine == 'amd64' or platform_machine == 'arm64' or platform_machine == 'x86_64' \
     --hash=sha256:09b138422ecbe50fd0c84d4da5ff537d27d487d3607183cd10e3e53f05188e82 \
     --hash=sha256:163aab46854ccae0ab6a786f8edecbbfbaa38fcaa0184db6feceebf7000c93c0 \
@@ -465,6 +512,10 @@ kiwisolver==1.5.0 \
     --hash=sha256:fd40bb9cd0891c4c3cb1ddf83f8bbfa15731a248fdc8162669405451e2724b09 \
     --hash=sha256:ff710414307fefa903e0d9bdf300972f892c23477829f49504e59834f4195398
     # via matplotlib
+kneed==0.8.6 \
+    --hash=sha256:3412e7b70bce07717386d24fab37f0f985968d1b85ea0c749a6b98caccaf65ec \
+    --hash=sha256:65b22727c623661701f15edf057f2e6c73e2b1ad4e68cd9ca4291675c318b5ef
+    # via montreal-forced-aligner
 lazy-loader==0.5 \
     --hash=sha256:717f9179a0dbed357012ddad50a5ad3d5e4d9a0b8712680d4e687f5e6e6ed9b3 \
     --hash=sha256:ab0ea149e9c554d4ffeeb21105ac60bed7f3b4fd69b1d2360a4add51b170b005
@@ -472,7 +523,9 @@ lazy-loader==0.5 \
 librosa==0.11.0 \
     --hash=sha256:0b6415c4fd68bff4c29288abe67c6d80b587e0e1e2cfb0aad23e4559504a7fa1 \
     --hash=sha256:f5ed951ca189b375bbe2e33b2abd7e040ceeee302b9bbaeeffdfddb8d0ace908
-    # via identifying-mandarin-tone-subspaces-in-wev2vec
+    # via
+    #   identifying-mandarin-tone-subspaces-in-wev2vec
+    #   montreal-forced-aligner
 llvmlite==0.46.0 \
     --hash=sha256:0a2d461cb89537b7c20feb04c46c32e12d5ad4f0896c9dfc0f60336219ff248e \
     --hash=sha256:227c9fd6d09dce2783c18b754b7cd9d9b3b3515210c46acc2d3c5badd9870ceb \
@@ -492,6 +545,10 @@ llvmlite==0.46.0 \
     --hash=sha256:e7a34d4aa6f9a97ee006b504be6d2b8cb7f755b80ab2f344dda1ef992f828559 \
     --hash=sha256:e8b10bc585c58bdffec9e0c309bb7d51be1f2f15e169a4b4d42f2389e431eb93
     # via numba
+markdown-it-py==4.0.0 \
+    --hash=sha256:87327c59b172c5011896038353a81343b6754500a08cd7a4973bb48c6d578147 \
+    --hash=sha256:cb0a2b4aa34f932c007117b194e945bd74e0ec24133ceb5bac59009cda1cb9f3
+    # via rich
 markupsafe==3.0.3 \
     --hash=sha256:0303439a41979d9e74d18ff5e2dd8c43ed6c6001fd40e5bf2e43f7bd9bbc523f \
     --hash=sha256:068f375c472b3e7acbe2d5318dea141359e6900156b5b2ba06a30b169086b91a \
@@ -592,6 +649,17 @@ matplotlib==3.10.8 \
     --hash=sha256:f97aeb209c3d2511443f8797e3e5a569aebb040d4f8bc79aa3ee78a8fb9e3dd8 \
     --hash=sha256:f9b587c9c7274c1613a30afabf65a272114cd6cdbe67b3406f818c79d7ab2e2a \
     --hash=sha256:fb061f596dad3a0f52b60dc6a5dec4a0c300dec41e058a7efe09256188d170b7
+    # via
+    #   identifying-mandarin-tone-subspaces-in-wev2vec
+    #   montreal-forced-aligner
+    #   seaborn
+mdurl==0.1.2 \
+    --hash=sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8 \
+    --hash=sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba
+    # via markdown-it-py
+montreal-forced-aligner==3.3.9 \
+    --hash=sha256:173e1154802ef6ded83ea90bb460f22267534505b0abc432c8f62a3f3a3f1bd6 \
+    --hash=sha256:3ae073bafc08193cb31b1f635551330a6337790e8b32bc44f1c19a6d9aa5ecf6
     # via identifying-mandarin-tone-subspaces-in-wev2vec
 mpmath==1.3.0 \
     --hash=sha256:7a28eb2a9774d00c7bc92411c19a89209d5da7c4c9a9e227be8330a23a25b91f \
@@ -721,12 +789,15 @@ numpy==2.2.6 ; python_full_version < '3.11' \
     # via
     #   contourpy
     #   identifying-mandarin-tone-subspaces-in-wev2vec
+    #   kneed
     #   librosa
     #   matplotlib
+    #   montreal-forced-aligner
     #   numba
     #   pandas
     #   scikit-learn
     #   scipy
+    #   seaborn
     #   soundfile
     #   soxr
     #   transformers
@@ -785,15 +856,22 @@ numpy==2.4.4 ; python_full_version >= '3.11' \
     # via
     #   contourpy
     #   identifying-mandarin-tone-subspaces-in-wev2vec
+    #   kneed
     #   librosa
     #   matplotlib
+    #   montreal-forced-aligner
     #   numba
     #   pandas
     #   scikit-learn
     #   scipy
+    #   seaborn
     #   soundfile
     #   soxr
     #   transformers
+ordered-set==4.1.0 \
+    --hash=sha256:046e1132c71fcf3330438a539928932caf51ddbc582496833e23de611de14562 \
+    --hash=sha256:694a8e44c87657c59292ede72891eb91d34131f6531463aab3009191c77364a8
+    # via pinyin-to-ipa
 packaging==26.0 \
     --hash=sha256:00243ae351a257117b6a241061796684b084ed1c516a08c48a3f7e147a9d80b4 \
     --hash=sha256:b36f1fef9334a5588b4166f8bcd26a14e521f2b55e6b9de3aaa80d3ff7a37529
@@ -839,7 +917,9 @@ pandas==2.3.3 \
     --hash=sha256:ecaf1e12bdc03c86ad4a7ea848d66c685cb6851d807a26aa245ca3d2017a1908 \
     --hash=sha256:f086f6fe114e19d92014a1966f43a3e62285109afe874f067f5abbdcbb10e59c \
     --hash=sha256:f8bfc0e12dc78f777f323f55c58649591b2cd0c43534e8355c51d3fede5f4dee
-    # via identifying-mandarin-tone-subspaces-in-wev2vec
+    # via
+    #   identifying-mandarin-tone-subspaces-in-wev2vec
+    #   seaborn
 pillow==12.1.1 \
     --hash=sha256:02f84dfad02693676692746df05b89cf25597560db2857363a208e393429f5e9 \
     --hash=sha256:0330d233c1a0ead844fc097a7d16c0abff4c12e856c0b325f231820fee1f39da \
@@ -908,6 +988,10 @@ pillow==12.1.1 \
     --hash=sha256:fc354a04072b765eccf2204f588a7a532c9511e8b9c7f900e1b64e3e33487090 \
     --hash=sha256:fc44ef1f3de4f45b50ccf9136999d71abb99dca7706bc75d222ed350b9fd2289
     # via matplotlib
+pinyin-to-ipa==1.0.0 \
+    --hash=sha256:4fad93242eeebe8817af99da2a4e5f5da16e10d93336991d36839ebc356c04a9 \
+    --hash=sha256:97e4199220a6ff4eed2e89aa00124c977db91826f93ed743c74dbacd8544e736
+    # via identifying-mandarin-tone-subspaces-in-wev2vec
 platformdirs==4.9.4 \
     --hash=sha256:1ec356301b7dc906d83f371c8f487070e99d3ccf9e501686456394622a01a934 \
     --hash=sha256:68a9a4619a666ea6439f2ff250c12a853cd1cbd5158d258bd824a7df6be2f868
@@ -916,14 +1000,28 @@ pooch==1.9.0 \
     --hash=sha256:de46729579b9857ffd3e741987a2f6d5e0e03219892c167c6578c0091fb511ed \
     --hash=sha256:f265597baa9f760d25ceb29d0beb8186c243d6607b0f60b83ecf14078dbc703b
     # via librosa
+praatio==6.2.2 \
+    --hash=sha256:d097b0e6991715559d68537c6af1baba86a0e0f9ad077e6d078e3d21c510743f \
+    --hash=sha256:ed8fdee6121bdae142817879ed9a50cc8334e72c03c110162e21ed8160180d2a
+    # via
+    #   identifying-mandarin-tone-subspaces-in-wev2vec
+    #   montreal-forced-aligner
 pycparser==3.0 ; implementation_name != 'PyPy' \
     --hash=sha256:600f49d217304a5902ac3c37e1281c9fe94e4d0489de643a9504c5cdfdfc6b29 \
     --hash=sha256:b727414169a36b7d524c1c3e31839a521725078d7b2ff038656844266160a992
     # via cffi
+pygments==2.20.0 \
+    --hash=sha256:6757cd03768053ff99f3039c1a36d6c0aa0b263438fcab17520b30a303a82b5f \
+    --hash=sha256:81a9e26dd42fd28a23a2d169d86d7ac03b46e2f8b59ed4698fb4785f946d0176
+    # via rich
 pyparsing==3.3.2 \
     --hash=sha256:850ba148bd908d7e2411587e247a1e4f0327839c40e2e5e6d05a007ecc69911d \
     --hash=sha256:c777f4d763f140633dcb6d8a3eda953bf7a214dc4eff598413c070bcdc117cbc
     # via matplotlib
+pypinyin==0.55.0 \
+    --hash=sha256:b5711b3a0c6f76e67408ec6b2e3c4987a3a806b7c528076e7c7b86fcf0eaa66b \
+    --hash=sha256:d53b1e8ad2cdb815fb2cb604ed3123372f5a28c6f447571244aca36fc62a286f
+    # via pinyin-to-ipa
 python-dateutil==2.9.0.post0 \
     --hash=sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3 \
     --hash=sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427
@@ -976,6 +1074,7 @@ pyyaml==6.0.3 \
     --hash=sha256:fc09d0aa354569bc501d4e787133afc08552722d3ab34836a80547331bb5d4a0
     # via
     #   huggingface-hub
+    #   montreal-forced-aligner
     #   transformers
 regex==2026.3.32 \
     --hash=sha256:0d7855f5e59fcf91d0c9f4a51dc5d8847813832a2230c3e8e35912ccf20baaa2 \
@@ -1066,8 +1165,19 @@ requests==2.33.1 \
     --hash=sha256:4e6d1ef462f3626a1f0a0a9c42dd93c63bad33f9f1c1937509b8c5c8718ab56a
     # via
     #   huggingface-hub
+    #   montreal-forced-aligner
     #   pooch
     #   transformers
+rich==14.3.3 \
+    --hash=sha256:793431c1f8619afa7d3b52b2cdec859562b950ea0d4b6b505397612db8d5362d \
+    --hash=sha256:b8daa0b9e4eef54dd8cf7c86c03713f53241884e814f4e2f5fb342fe520f639b
+    # via
+    #   montreal-forced-aligner
+    #   rich-click
+rich-click==1.9.7 \
+    --hash=sha256:022997c1e30731995bdbc8ec2f82819340d42543237f033a003c7b1f843fc5dc \
+    --hash=sha256:2f99120fca78f536e07b114d3b60333bc4bb2a0969053b1250869bcdc1b5351b
+    # via montreal-forced-aligner
 safetensors==0.7.0 \
     --hash=sha256:0071bffba4150c2f46cae1432d31995d77acfd9f8db598b5d1a2ce67e8440ad2 \
     --hash=sha256:07663963b67e8bd9f0b8ad15bb9163606cd27cc5a1b96235a50d8369803b96b0 \
@@ -1119,6 +1229,7 @@ scikit-learn==1.7.2 ; python_full_version < '3.11' \
     # via
     #   identifying-mandarin-tone-subspaces-in-wev2vec
     #   librosa
+    #   montreal-forced-aligner
 scikit-learn==1.8.0 ; python_full_version >= '3.11' \
     --hash=sha256:0d6ae97234d5d7079dc0040990a6f7aeb97cb7fa7e8945f1999a429b23569e0a \
     --hash=sha256:146b4d36f800c013d267b29168813f7a03a43ecd2895d04861f1240b564421da \
@@ -1148,6 +1259,7 @@ scikit-learn==1.8.0 ; python_full_version >= '3.11' \
     # via
     #   identifying-mandarin-tone-subspaces-in-wev2vec
     #   librosa
+    #   montreal-forced-aligner
 scipy==1.15.3 ; python_full_version < '3.11' \
     --hash=sha256:05dc6abcd105e1a29f95eada46d4a3f251743cfd7d3ae8ddb4088047f24ea477 \
     --hash=sha256:06efcba926324df1696931a57a176c80848ccd67ce6ad020c810736bfd58eb1c \
@@ -1197,6 +1309,7 @@ scipy==1.15.3 ; python_full_version < '3.11' \
     --hash=sha256:f77f853d584e72e874d87357ad70f44b437331507d1c311457bed8ed2b956126
     # via
     #   identifying-mandarin-tone-subspaces-in-wev2vec
+    #   kneed
     #   librosa
     #   scikit-learn
 scipy==1.17.1 ; python_full_version >= '3.11' \
@@ -1243,8 +1356,13 @@ scipy==1.17.1 ; python_full_version >= '3.11' \
     --hash=sha256:fcb310ddb270a06114bb64bbe53c94926b943f5b7f0842194d585c65eb4edd76
     # via
     #   identifying-mandarin-tone-subspaces-in-wev2vec
+    #   kneed
     #   librosa
     #   scikit-learn
+seaborn==0.13.2 \
+    --hash=sha256:636f8336facf092165e27924f223d3c62ca560b1f2bb5dff7ab7fad265361987 \
+    --hash=sha256:93e60a40988f4d65e9f4885df477e2fdaff6b73a9ded434c1ab356dd57eefff7
+    # via montreal-forced-aligner
 setuptools==82.0.1 ; python_full_version >= '3.12' \
     --hash=sha256:7d872682c5d01cfde07da7bccc7b65469d3dca203318515ada1de5eda35efbf9 \
     --hash=sha256:a59e362652f08dcd477c78bb6e7bd9d80a7995bc73ce773050228a348ce2e5bb
@@ -1283,6 +1401,44 @@ soxr==1.0.0 \
     --hash=sha256:e973d487ee46aa8023ca00a139db6e09af053a37a032fe22f9ff0cc2e19c94b4 \
     --hash=sha256:f8dc69fc18884e53b72f6141fdf9d80997edbb4fec9dc2942edcb63abbe0d023
     # via librosa
+sqlalchemy==2.0.49 \
+    --hash=sha256:0c98c59075b890df8abfcc6ad632879540f5791c68baebacb4f833713b510e75 \
+    --hash=sha256:12b04d1db2663b421fe072d638a138460a51d5a862403295671c4f3987fb9148 \
+    --hash=sha256:22d8798819f86720bc646ab015baff5ea4c971d68121cb36e2ebc2ee43ead2b7 \
+    --hash=sha256:24bd94bb301ec672d8f0623eba9226cc90d775d25a0c92b5f8e4965d7f3a1518 \
+    --hash=sha256:32fe6a41ad97302db2931f05bb91abbcc65b5ce4c675cd44b972428dd2947700 \
+    --hash=sha256:3bb9ec6436a820a4c006aad1ac351f12de2f2dbdaad171692ee457a02429b672 \
+    --hash=sha256:3ddcb27fb39171de36e207600116ac9dfd4ae46f86c82a9bf3934043e80ebb88 \
+    --hash=sha256:42e8804962f9e6f4be2cbaedc0c3718f08f60a16910fa3d86da5a1e3b1bfe60f \
+    --hash=sha256:46796877b47034b559a593d7e4b549aba151dae73f9e78212a3478161c12ab08 \
+    --hash=sha256:46d51518d53edfbe0563662c96954dc8fcace9832332b914375f45a99b77cc9a \
+    --hash=sha256:47604cb2159f8bbd5a1ab48a714557156320f20871ee64d550d8bf2683d980d3 \
+    --hash=sha256:4bbccb45260e4ff1b7db0be80a9025bb1e6698bdb808b83fff0000f7a90b2c0b \
+    --hash=sha256:4d4e5a0ceba319942fa6b585cf82539288a61e314ef006c1209f734551ab9536 \
+    --hash=sha256:55250fe61d6ebfd6934a272ee16ef1244e0f16b7af6cd18ab5b1fc9f08631db0 \
+    --hash=sha256:5e61abbec255be7b122aa461021daa7c3f310f3e743411a67079f9b3cc91ece3 \
+    --hash=sha256:618a308215b6cececb6240b9abde545e3acdabac7ae3e1d4e666896bf5ba44b4 \
+    --hash=sha256:62557958002b69699bdb7f5137c6714ca1133f045f97b3903964f47db97ea339 \
+    --hash=sha256:6eb188b84269f357669b62cb576b5b918de10fb7c728a005fa0ebb0b758adce1 \
+    --hash=sha256:83101a6930332b87653886c01d1ee7e294b1fe46a07dd9a2d2b4f91bcc88eec0 \
+    --hash=sha256:8d6efc136f44a7e8bc8088507eaabbb8c2b55b3dbb63fe102c690da0ddebe55e \
+    --hash=sha256:8e20e511dc15265fb433571391ba313e10dd8ea7e509d51686a51313b4ac01a2 \
+    --hash=sha256:951d4a210744813be63019f3df343bf233b7432aadf0db54c75802247330d3af \
+    --hash=sha256:9ac7a3e245fd0310fd31495eb61af772e637bdf7d88ee81e7f10a3f271bff014 \
+    --hash=sha256:9b1c058c171b739e7c330760044803099c7fff11511e3ab3573e5327116a9c33 \
+    --hash=sha256:9c4969a86e41454f2858256c39bdfb966a20961e9b58bf8749b65abf447e9a8d \
+    --hash=sha256:a143af2ea6672f2af3f44ed8f9cd020e9cc34c56f0e8db12019d5d9ecf41cb3b \
+    --hash=sha256:a51d3db74ba489266ef55c7a4534eb0b8db9a326553df481c11e5d7660c8364d \
+    --hash=sha256:b9870d15ef00e4d0559ae10ee5bc71b654d1f20076dbe8bc7ed19b4c0625ceba \
+    --hash=sha256:c5070135e1b7409c4161133aa525419b0062088ed77c92b1da95366ec5cbebbe \
+    --hash=sha256:cc992c6ed024c8c3c592c5fc9846a03dd68a425674900c70122c77ea16c5fb0b \
+    --hash=sha256:d15950a57a210e36dd4cec1aac22787e2a4d57ba9318233e2ef8b2daf9ff2d5f \
+    --hash=sha256:da9b91bca419dc9b9267ffadde24eae9b1a6bffcd09d0a207e5e3af99a03ce0d \
+    --hash=sha256:df2d441bacf97022e81ad047e1597552eb3f83ca8a8f1a1fdd43cd7fe3898120 \
+    --hash=sha256:e06e617e3d4fd9e51d385dfe45b077a41e9d1b033a7702551e3278ac597dc750 \
+    --hash=sha256:ec44cfa7ef1a728e88ad41674de50f6db8cfdb3e2af84af86e0041aaf02d43d0 \
+    --hash=sha256:fb37f15714ec2652d574f021d479e78cd4eb9d04396dca36568fdfffb3487982
+    # via montreal-forced-aligner
 standard-aifc==3.13.0 ; python_full_version >= '3.13' \
     --hash=sha256:64e249c7cb4b3daf2fdba4e95721f811bde8bdfc43ad9f936589b7bb2fae2e43 \
     --hash=sha256:f7ae09cc57de1224a0dd8e3eb8f73830be7c3d0bc485de4c1f82b4a7f645ac66
@@ -1388,6 +1544,7 @@ tqdm==4.67.3 \
     # via
     #   huggingface-hub
     #   identifying-mandarin-tone-subspaces-in-wev2vec
+    #   montreal-forced-aligner
     #   transformers
 transformers==4.57.6 \
     --hash=sha256:4c9e9de11333ddfe5114bc872c9f370509198acf0b87a832a0ab9458e2bd0550 \
@@ -1399,6 +1556,9 @@ typing-extensions==4.15.0 \
     # via
     #   huggingface-hub
     #   librosa
+    #   praatio
+    #   rich-click
+    #   sqlalchemy
     #   torch
 tzdata==2025.3 \
     --hash=sha256:06a47e5700f3081aab02b2e513160914ff0694bce9947d6b76ebd6bf57cfc5d1 \

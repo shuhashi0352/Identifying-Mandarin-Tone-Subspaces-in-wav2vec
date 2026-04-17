@@ -213,3 +213,7 @@ data/
 
 # Venv
 .venv/
+
+# bash script
+uv_to_pip.txt
+rerun_bash.txt
