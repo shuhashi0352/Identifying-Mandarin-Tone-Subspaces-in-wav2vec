@@ -1,0 +1,593 @@
+l = 6
+
+k=  1 | var=0.0802 | acc=0.2640
+k=  2 | var=0.1508 | acc=0.2606
+k=  3 | var=0.2118 | acc=0.2603
+k=  5 | var=0.3071 | acc=0.3355
+k= 10 | var=0.4497 | acc=0.4527
+k= 20 | var=0.5809 | acc=0.5958
+k= 50 | var=0.7334 | acc=0.8591
+k=100 | var=0.8302 | acc=0.9033
+k=200 | var=0.9120 | acc=0.9263
+k=400 | var=0.9721 | acc=0.9310
+k=768 | var=1.0000 | acc=0.9440 | RAW
+[{'layer': 6, 'k': 1, 'explained_variance': np.float32(0.08022944), 'accuracy': 0.26399253731343286},
+ {'layer': 6, 'k': 2, 'explained_variance': np.float32(0.15075147), 'accuracy': 0.2605721393034826},
+ {'layer': 6, 'k': 3, 'explained_variance': np.float32(0.21176864), 'accuracy': 0.26026119402985076},
+ {'layer': 6, 'k': 5, 'explained_variance': np.float32(0.30711353), 'accuracy': 0.33550995024875624},
+ {'layer': 6, 'k': 10, 'explained_variance': np.float32(0.4496882), 'accuracy': 0.4527363184079602},
+ {'layer': 6, 'k': 20, 'explained_variance': np.float32(0.5808808), 'accuracy': 0.595771144278607},
+ {'layer': 6, 'k': 50, 'explained_variance': np.float32(0.73335236), 'accuracy': 0.8591417910447762},
+ {'layer': 6, 'k': 100, 'explained_variance': np.float32(0.8302071), 'accuracy': 0.9032960199004975},
+ {'layer': 6, 'k': 200, 'explained_variance': np.float32(0.9120488), 'accuracy': 0.9263059701492538},
+ {'layer': 6, 'k': 400, 'explained_variance': np.float32(0.97213936), 'accuracy': 0.9309701492537313},
+ {'layer': 6, 'k': 768, 'explained_variance': 1.0, 'accuracy': 0.9440298507462687}]
+
+
+ For Layer 6 hidden states:
+	•	Tone is highly decodable (94.4% raw)
+	•	But it is not concentrated in only the top few PCA directions
+
+That means:
+
+Tone information exists strongly in the representation, but it is distributed across many dimensions rather than sitting only in the highest-variance axes.
+
+Low-k performs poorly
+	•	k=1 → 26.4%
+	•	k=2 → 26.1%
+	•	k=3 → 26.0%
+
+Chance level for 4 classes is 25%, so top PCs alone are barely useful.
+
+This is the most important part.
+
+The first few dominant variance directions are not the tone directions.
+
+Mid-k gradually recovers signal
+	•	k=10 → 45.3%
+	•	k=20 → 59.6%
+
+Now some tone-relevant subspace is entering.
+
+
+Strong jump after larger subspace
+	•	k=50 → 85.9%
+	•	k=100 → 90.3%
+	•	k=200 → 92.6%
+
+This suggests tone is spread across a broader manifold.
+
+Full space still best
+	•	raw 768-d → 94.4%
+
+So some useful information still lies beyond even 400 PCs.
+
+
+## Why this matters theoretically
+
+This is exactly the distinction:
+
+“Highly decodable” ≠ “aligned with top PCA geometry”
+
+Your probe showed:
+	•	tone is clearly there
+
+Your PCA sweep showed:
+	•	but not in a tiny dominant variance subspace
+
+That means decodability and geometric prominence are different things.
+
+This is a central result.
+
+
+## Comparison with your F0 contour baseline
+
+Your F0 features behaved differently:
+	•	only 10 dimensions total
+	•	top PCs captured much of available structure
+
+But here:
+	•	768 dimensions
+	•	top variance PCs are doing something else besides tone
+
+Likely encoding:
+	•	speaker residuals
+	•	phonetic identity
+	•	spectral envelope
+	•	articulatory variation
+	•	contextual structure
+
+Tone is one important factor, but not the sole largest source of variance.
+
+
+## Strong write-up sentence
+
+You could say:
+
+Although tone is highly decodable from Layer 6 wav2vec representations (94.4%), the top principal components alone perform near chance, indicating that tone information is distributed across multiple dimensions rather than concentrated in the dominant variance directions.
+
+That’s paper-worthy.
+
+
+## What this means for PCA vs DAS framing
+
+This result motivates your causal-subspace idea.
+
+Because if top PCA directions miss tone:
+	•	PCA may not isolate the functionally relevant subspace efficiently.
+
+So a supervised intervention method (e.g. DAS) may find a much smaller tone-specific subspace than PCA does.
+
+That is exactly why your project is interesting.
+
+
+## Recommended next step (best one)
+
+Compare multiple layers with same PCA sweep
+
+Run this for:
+	•	Layer 0
+	•	Layer 2
+	•	Layer 6
+	•	Layer 12
+
+Then ask:
+
+Which layer has the most compact tone geometry?
+
+Maybe some layer gets 90% accuracy with only 20 PCs.
+That would mean tone is more geometrically organized there.
+
+
+## Also highly useful next analysis
+
+Inspect PCA class separation visually
+
+For Layer 6:
+	•	PC1 vs PC2 scatter
+	•	colored by tone
+	•	shaped by speaker
+
+This can reveal:
+	•	whether PCs reflect speaker clusters
+	•	whether tone separates only in later PCs
+	•	whether tones overlap nonlinearly
+
+
+
+
+
+l = 0
+
+
+k=  1 | var=0.1102 | acc=0.2512
+k=  2 | var=0.1788 | acc=0.2780
+k=  3 | var=0.2403 | acc=0.2898
+k=  5 | var=0.3412 | acc=0.3165
+k= 10 | var=0.4893 | acc=0.3905
+k= 20 | var=0.6433 | acc=0.4817
+k= 50 | var=0.8095 | acc=0.6228
+k=100 | var=0.9001 | acc=0.7313
+k=200 | var=0.9619 | acc=0.8507
+k=400 | var=0.9911 | acc=0.8937
+k=768 | var=1.0000 | acc=0.9021 | RAW
+[{'layer': 0, 'k': 1, 'explained_variance': np.float32(0.11018181), 'accuracy': 0.2512437810945274},
+ {'layer': 0, 'k': 2, 'explained_variance': np.float32(0.17884514), 'accuracy': 0.27798507462686567},
+ {'layer': 0, 'k': 3, 'explained_variance': np.float32(0.24032247), 'accuracy': 0.2898009950248756},
+ {'layer': 0, 'k': 5, 'explained_variance': np.float32(0.3412011), 'accuracy': 0.31654228855721395},
+ {'layer': 0, 'k': 10, 'explained_variance': np.float32(0.48934877), 'accuracy': 0.39054726368159204},
+ {'layer': 0, 'k': 20, 'explained_variance': np.float32(0.6433494), 'accuracy': 0.4816542288557214},
+ {'layer': 0, 'k': 50, 'explained_variance': np.float32(0.8095254), 'accuracy': 0.6228233830845771},
+ {'layer': 0, 'k': 100, 'explained_variance': np.float32(0.9000549), 'accuracy': 0.7313432835820896},
+ {'layer': 0, 'k': 200, 'explained_variance': np.float32(0.96193427), 'accuracy': 0.8507462686567164},
+ {'layer': 0, 'k': 400, 'explained_variance': np.float32(0.9910941), 'accuracy': 0.8936567164179104},
+ {'layer': 0, 'k': 768, 'explained_variance': 1.0, 'accuracy': 0.9020522388059702}]
+
+
+
+l = 2
+
+k=  1 | var=0.1170 | acc=0.2540
+k=  2 | var=0.1949 | acc=0.2422
+k=  3 | var=0.2514 | acc=0.2544
+k=  5 | var=0.3381 | acc=0.2839
+k= 10 | var=0.4694 | acc=0.4400
+k= 20 | var=0.5930 | acc=0.6906
+k= 50 | var=0.7440 | acc=0.8361
+k=100 | var=0.8472 | acc=0.8812
+k=200 | var=0.9285 | acc=0.9129
+k=400 | var=0.9805 | acc=0.9288
+k=768 | var=1.0000 | acc=0.9356 | RAW
+[{'layer': 2, 'k': 1, 'explained_variance': np.float32(0.11696378), 'accuracy': 0.25404228855721395},
+ {'layer': 2, 'k': 2, 'explained_variance': np.float32(0.19485405), 'accuracy': 0.24222636815920398},
+ {'layer': 2, 'k': 3, 'explained_variance': np.float32(0.25140372), 'accuracy': 0.2543532338308458},
+ {'layer': 2, 'k': 5, 'explained_variance': np.float32(0.33814067), 'accuracy': 0.28389303482587064},
+ {'layer': 2, 'k': 10, 'explained_variance': np.float32(0.46938705), 'accuracy': 0.4399875621890547},
+ {'layer': 2, 'k': 20, 'explained_variance': np.float32(0.5929996), 'accuracy': 0.6906094527363185},
+ {'layer': 2, 'k': 50, 'explained_variance': np.float32(0.7439686), 'accuracy': 0.8361318407960199},
+ {'layer': 2, 'k': 100, 'explained_variance': np.float32(0.8471824), 'accuracy': 0.8812189054726368},
+ {'layer': 2, 'k': 200, 'explained_variance': np.float32(0.92846644), 'accuracy': 0.9129353233830846},
+ {'layer': 2, 'k': 400, 'explained_variance': np.float32(0.98047125), 'accuracy': 0.9287935323383084},
+ {'layer': 2, 'k': 768, 'explained_variance': 1.0, 'accuracy': 0.9356343283582089}]
+
+
+
+
+l = 12
+
+
+k=  1 | var=0.2159 | acc=0.2966
+k=  2 | var=0.3108 | acc=0.3100
+k=  3 | var=0.3758 | acc=0.3078
+k=  5 | var=0.4758 | acc=0.3057
+k= 10 | var=0.6064 | acc=0.4490
+k= 20 | var=0.7210 | acc=0.5485
+k= 50 | var=0.8449 | acc=0.7027
+k=100 | var=0.9130 | acc=0.7743
+k=200 | var=0.9628 | acc=0.8231
+k=400 | var=0.9922 | acc=0.8520
+k=768 | var=1.0000 | acc=0.8626 | RAW
+[{'layer': 12, 'k': 1, 'explained_variance': np.float32(0.21591407), 'accuracy': 0.2966417910447761},
+ {'layer': 12, 'k': 2, 'explained_variance': np.float32(0.31081122), 'accuracy': 0.3100124378109453},
+ {'layer': 12, 'k': 3, 'explained_variance': np.float32(0.37584707), 'accuracy': 0.30783582089552236},
+ {'layer': 12, 'k': 5, 'explained_variance': np.float32(0.4758092), 'accuracy': 0.3056592039800995},
+ {'layer': 12, 'k': 10, 'explained_variance': np.float32(0.606353), 'accuracy': 0.4490049751243781},
+ {'layer': 12, 'k': 20, 'explained_variance': np.float32(0.7210008), 'accuracy': 0.5485074626865671},
+ {'layer': 12, 'k': 50, 'explained_variance': np.float32(0.84493023), 'accuracy': 0.7027363184079602},
+ {'layer': 12, 'k': 100, 'explained_variance': np.float32(0.9129638), 'accuracy': 0.7742537313432836},
+ {'layer': 12, 'k': 200, 'explained_variance': np.float32(0.9628089), 'accuracy': 0.8230721393034826},
+ {'layer': 12, 'k': 400, 'explained_variance': np.float32(0.9921776), 'accuracy': 0.8519900497512438},
+ {'layer': 12, 'k': 768, 'explained_variance': 1.0, 'accuracy': 0.8625621890547264}]
+
+
+
+
+
+
+Compactness
+
+
+   layer  min_k_for_target  best_accuracy
+2      6             100.0       0.944030
+1      2             200.0       0.935634
+0      0             768.0       0.902052
+3     12               NaN       0.862562
+
+best_accuracy???:
+In your table, “best” meant something like:
+	•	highest raw test accuracy
+	•	and/or smallest k needed to hit 90% accuracy
+
+In your specific table
+
+You computed:
+	•	best_accuracy
+	•	min_k_for_target
+
+and got:
+	•	Layer 6: best accuracy 0.944, min k for 90% = 100
+	•	Layer 2: best accuracy 0.936, min k for 90% = 200
+	•	Layer 0: best accuracy 0.902, min k for 90% = 768
+	•	Layer 12: never reached 0.90
+
+So Layer 6 wins by both criteria.
+
+---------
+
+
+Main conclusion
+
+Layer 6 is the most compact and strongest tone layer
+
+It reaches:
+	•	90%+ accuracy with only 100 PCs
+	•	best raw accuracy = 94.4%
+
+Compared with:
+	•	Layer 2 needs 200 PCs
+	•	Layer 0 needs full 768
+	•	Layer 12 never reaches 90%
+
+So among tested layers:
+
+Layer 6 is where tone is represented most efficiently.
+
+
+You now have two separate notions:
+
+Raw decodability
+
+How much tone information exists?
+
+Best = Layer 6
+
+Geometric compactness
+
+How concentrated is tone information into a lower-dimensional subspace?
+
+Best = Layer 6
+
+That is stronger than only saying “Layer 6 has best accuracy.”
+
+You can now say:
+
+Layer 6 is both the most tone-informative and the most geometrically organized layer among the tested layers.
+
+That is a real representational claim.
+
+
+Interpretation by layer
+
+Layer 0
+	•	strong raw accuracy (0.90)
+	•	but needs full space
+
+Meaning:
+Tone exists, but in a diffuse/raw acoustic form.
+
+Layer 2
+	•	strong raw accuracy (0.936)
+	•	more compact than Layer 0
+
+Meaning:
+Network begins reorganizing tone structure.
+
+Layer 6
+	•	strongest raw accuracy
+	•	most compact
+
+Meaning:
+Middle layers transform raw acoustics into an efficient tone representation.
+
+Layer 12
+	•	weaker raw accuracy
+	•	not compact
+
+Meaning:
+Later layers may shift focus away from tone toward other objectives.
+
+
+
+This is exactly the kind of story papers tell
+
+You now have a layerwise trajectory:
+
+raw distributed acoustic cues → compact task-relevant encoding → partial decline in later layers
+
+That’s excellent.
+
+
+
+
+
+
+
+
+All layers
+
+
+
+
+
+
+===== Layer 0 =====
+Layer 0
+x_train: (6472, 768)
+x_test: (3216, 768)
+k=  1 | var=0.1102 | acc=0.2512
+k=  2 | var=0.1788 | acc=0.2780
+k=  3 | var=0.2403 | acc=0.2895
+k=  5 | var=0.3412 | acc=0.3165
+k= 10 | var=0.4893 | acc=0.3902
+k= 20 | var=0.6433 | acc=0.4810
+k= 50 | var=0.8095 | acc=0.6231
+k=100 | var=0.9001 | acc=0.7444
+k=200 | var=0.9620 | acc=0.8442
+k=400 | var=0.9911 | acc=0.8930
+k=768 | var=1.0000 | acc=0.9021 | RAW
+
+===== Layer 1 =====
+Layer 1
+x_train: (6472, 768)
+x_test: (3216, 768)
+k=  1 | var=0.1246 | acc=0.2596
+k=  2 | var=0.1970 | acc=0.2606
+k=  3 | var=0.2481 | acc=0.2668
+k=  5 | var=0.3311 | acc=0.3159
+k= 10 | var=0.4616 | acc=0.4484
+k= 20 | var=0.5939 | acc=0.6222
+k= 50 | var=0.7580 | acc=0.8116
+k=100 | var=0.8649 | acc=0.8492
+k=200 | var=0.9436 | acc=0.8943
+k=400 | var=0.9869 | acc=0.9160
+k=768 | var=1.0000 | acc=0.9182 | RAW
+
+===== Layer 2 =====
+Layer 2
+x_train: (6472, 768)
+x_test: (3216, 768)
+k=  1 | var=0.1170 | acc=0.2540
+k=  2 | var=0.1949 | acc=0.2422
+k=  3 | var=0.2514 | acc=0.2544
+k=  5 | var=0.3381 | acc=0.2839
+k= 10 | var=0.4694 | acc=0.4406
+k= 20 | var=0.5930 | acc=0.6912
+k= 50 | var=0.7440 | acc=0.8405
+k=100 | var=0.8472 | acc=0.8881
+k=200 | var=0.9285 | acc=0.9108
+k=400 | var=0.9805 | acc=0.9279
+k=768 | var=1.0000 | acc=0.9356 | RAW
+
+===== Layer 3 =====
+Layer 3
+x_train: (6472, 768)
+x_test: (3216, 768)
+k=  1 | var=0.1116 | acc=0.2481
+k=  2 | var=0.1890 | acc=0.2456
+k=  3 | var=0.2486 | acc=0.2612
+k=  5 | var=0.3397 | acc=0.3063
+k= 10 | var=0.4782 | acc=0.4658
+k= 20 | var=0.6032 | acc=0.6744
+k= 50 | var=0.7472 | acc=0.8374
+k=100 | var=0.8442 | acc=0.8834
+k=200 | var=0.9236 | acc=0.9092
+k=400 | var=0.9783 | acc=0.9220
+k=768 | var=1.0000 | acc=0.9350 | RAW
+
+===== Layer 4 =====
+Layer 4
+x_train: (6472, 768)
+x_test: (3216, 768)
+k=  1 | var=0.1013 | acc=0.2475
+k=  2 | var=0.1797 | acc=0.2528
+k=  3 | var=0.2434 | acc=0.2618
+k=  5 | var=0.3438 | acc=0.3172
+k= 10 | var=0.4831 | acc=0.4761
+k= 20 | var=0.6130 | acc=0.6322
+k= 50 | var=0.7620 | acc=0.8542
+k=100 | var=0.8532 | acc=0.8902
+k=200 | var=0.9283 | acc=0.9117
+k=400 | var=0.9798 | acc=0.9260
+k=768 | var=1.0000 | acc=0.9313 | RAW
+
+===== Layer 5 =====
+Layer 5
+x_train: (6472, 768)
+x_test: (3216, 768)
+k=  1 | var=0.0875 | acc=0.2736
+k=  2 | var=0.1596 | acc=0.2727
+k=  3 | var=0.2212 | acc=0.2711
+k=  5 | var=0.3189 | acc=0.3106
+k= 10 | var=0.4518 | acc=0.4428
+k= 20 | var=0.5860 | acc=0.6166
+k= 50 | var=0.7415 | acc=0.8688
+k=100 | var=0.8376 | acc=0.8902
+k=200 | var=0.9172 | acc=0.9188
+k=400 | var=0.9748 | acc=0.9244
+k=768 | var=1.0000 | acc=0.9325 | RAW
+
+===== Layer 6 =====
+Layer 6
+x_train: (6472, 768)
+x_test: (3216, 768)
+k=  1 | var=0.0802 | acc=0.2640
+k=  2 | var=0.1508 | acc=0.2606
+k=  3 | var=0.2118 | acc=0.2603
+k=  5 | var=0.3071 | acc=0.3355
+k= 10 | var=0.4497 | acc=0.4524
+k= 20 | var=0.5809 | acc=0.5948
+k= 50 | var=0.7334 | acc=0.8573
+k=100 | var=0.8303 | acc=0.9002
+k=200 | var=0.9120 | acc=0.9244
+k=400 | var=0.9721 | acc=0.9325
+k=768 | var=1.0000 | acc=0.9440 | RAW
+
+===== Layer 7 =====
+Layer 7
+x_train: (6472, 768)
+x_test: (3216, 768)
+k=  1 | var=0.0845 | acc=0.2693
+k=  2 | var=0.1583 | acc=0.2708
+k=  3 | var=0.2211 | acc=0.2767
+k=  5 | var=0.3173 | acc=0.2923
+k= 10 | var=0.4535 | acc=0.5491
+k= 20 | var=0.5784 | acc=0.6225
+k= 50 | var=0.7281 | acc=0.8206
+k=100 | var=0.8237 | acc=0.8803
+k=200 | var=0.9062 | acc=0.9045
+k=400 | var=0.9692 | acc=0.9160
+k=768 | var=1.0000 | acc=0.9266 | RAW
+
+===== Layer 8 =====
+Layer 8
+x_train: (6472, 768)
+x_test: (3216, 768)
+k=  1 | var=0.1010 | acc=0.2780
+k=  2 | var=0.1779 | acc=0.2705
+k=  3 | var=0.2486 | acc=0.2870
+k=  5 | var=0.3444 | acc=0.3280
+k= 10 | var=0.4814 | acc=0.5090
+k= 20 | var=0.6053 | acc=0.5628
+k= 50 | var=0.7480 | acc=0.7568
+k=100 | var=0.8357 | acc=0.8442
+k=200 | var=0.9110 | acc=0.8626
+k=400 | var=0.9699 | acc=0.8769
+k=768 | var=1.0000 | acc=0.8909 | RAW
+
+===== Layer 9 =====
+Layer 9
+x_train: (6472, 768)
+x_test: (3216, 768)
+k=  1 | var=0.0994 | acc=0.2690
+k=  2 | var=0.1852 | acc=0.2749
+k=  3 | var=0.2633 | acc=0.2764
+k=  5 | var=0.3687 | acc=0.3654
+k= 10 | var=0.5143 | acc=0.4835
+k= 20 | var=0.6426 | acc=0.5522
+k= 50 | var=0.7868 | acc=0.7394
+k=100 | var=0.8678 | acc=0.8038
+k=200 | var=0.9320 | acc=0.8445
+k=400 | var=0.9782 | acc=0.8694
+k=768 | var=1.0000 | acc=0.8850 | RAW
+
+===== Layer 10 =====
+Layer 10
+x_train: (6472, 768)
+x_test: (3216, 768)
+k=  1 | var=0.1027 | acc=0.2792
+k=  2 | var=0.1976 | acc=0.2727
+k=  3 | var=0.2688 | acc=0.2767
+k=  5 | var=0.3691 | acc=0.3321
+k= 10 | var=0.5101 | acc=0.4546
+k= 20 | var=0.6399 | acc=0.5177
+k= 50 | var=0.7830 | acc=0.6692
+k=100 | var=0.8672 | acc=0.7752
+k=200 | var=0.9335 | acc=0.8343
+k=400 | var=0.9793 | acc=0.8638
+k=768 | var=1.0000 | acc=0.8803 | RAW
+
+===== Layer 11 =====
+Layer 11
+x_train: (6472, 768)
+x_test: (3216, 768)
+k=  1 | var=0.3169 | acc=0.2904
+k=  2 | var=0.3833 | acc=0.3001
+k=  3 | var=0.4413 | acc=0.3016
+k=  5 | var=0.5215 | acc=0.3190
+k= 10 | var=0.6419 | acc=0.4440
+k= 20 | var=0.7416 | acc=0.4733
+k= 50 | var=0.8472 | acc=0.6720
+k=100 | var=0.9090 | acc=0.7540
+k=200 | var=0.9562 | acc=0.8141
+k=400 | var=0.9873 | acc=0.8374
+k=768 | var=1.0000 | acc=0.8433 | RAW
+
+===== Layer 12 =====
+Layer 12
+x_train: (6472, 768)
+x_test: (3216, 768)
+k=  1 | var=0.2159 | acc=0.2966
+k=  2 | var=0.3108 | acc=0.3100
+k=  3 | var=0.3758 | acc=0.3078
+k=  5 | var=0.4758 | acc=0.3057
+k= 10 | var=0.6064 | acc=0.4490
+k= 20 | var=0.7210 | acc=0.5479
+k= 50 | var=0.8449 | acc=0.7012
+k=100 | var=0.9129 | acc=0.7733
+k=200 | var=0.9628 | acc=0.8287
+k=400 | var=0.9922 | acc=0.8532
+k=768 | var=1.0000 | acc=0.8626 | RAW
+    layer  min_k_for_target  best_accuracy
+6       6             100.0       0.944030
+2       2             200.0       0.935634
+3       3             200.0       0.935012
+4       4             200.0       0.931281
+5       5             200.0       0.932525
+7       7             200.0       0.926617
+1       1             400.0       0.918221
+0       0             768.0       0.902052
+8       8               NaN       0.890858
+9       9               NaN       0.884950
+10     10               NaN       0.880286
+11     11               NaN       0.843284
+12     12               NaN       0.862562

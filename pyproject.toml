@@ -20,6 +20,8 @@ dependencies = [
   "matplotlib>=3.8,<4",
   "praatio>=6.0,<7",
   "pinyin-to-ipa==1.0.0",
+  "praat-parselmouth==0.4.5",
+  "tqdm",
 ]
 
 [[tool.uv.index]]

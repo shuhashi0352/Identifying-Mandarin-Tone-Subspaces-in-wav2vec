@@ -1,0 +1,45 @@
+1. Speaker means make sense
+
+Females higher than males:
+	•	FV1 ≈ 259 Hz
+	•	FV2 ≈ 278 Hz
+	•	FV3 ≈ 243 Hz
+
+Males lower:
+	•	MV1 ≈ 157 Hz
+	•	MV2 ≈ 147 Hz
+	•	MV3 ≈ 144 Hz
+
+That’s realistic.
+
+2. Standard deviations are plausible
+	•	Female ranges: ~37–62
+	•	Male ranges: ~31–54
+
+Normal variation across speakers + tokens.
+
+3. z-values behave correctly
+
+Examples:
+	•	High raw F0 → positive z
+	•	Low raw F0 → negative z
+	•	Around speaker mean → near 0
+
+Example:
+
+FV1 raw = 328 Hz
+mean = 259, std = 58
+
+Roughly:
+
+(328-259)/58 \approx 1.19
+
+4. NaNs preserved
+
+Unvoiced frames remain nan, which is exactly what we want.
+
+Do not convert them to 0.
+
+✅ Speaker normalization succeeded
+✅ Data structure looks healthy
+✅ Ready for next stage

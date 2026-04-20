@@ -1,0 +1,181 @@
+""""""""""
+n = 2
+""""""""""
+
+Explained variance ratio: [0.84256256 0.11663083]
+Train PCA shape: (6472, 2)
+Test PCA shape: (3216, 2)
+Test accuracy: 0.5245646766169154
+              precision    recall  f1-score   support
+
+           1       0.64      0.50      0.56       809
+           2       0.45      0.58      0.51       803
+           3       0.42      0.30      0.35       797
+           4       0.59      0.71      0.65       807
+
+    accuracy                           0.52      3216
+   macro avg       0.52      0.52      0.52      3216
+weighted avg       0.53      0.52      0.52      3216
+
+Raw 10-d contour accuracy: 0.5659203980099502
+              precision    recall  f1-score   support
+
+           1       0.69      0.53      0.60       809
+           2       0.50      0.66      0.57       803
+           3       0.48      0.36      0.41       797
+           4       0.60      0.71      0.65       807
+
+    accuracy                           0.57      3216
+   macro avg       0.57      0.57      0.56      3216
+weighted avg       0.57      0.57      0.56      3216
+
+
+
+
+
+
+""""""""""
+n = 3
+""""""""""
+
+Explained variance ratio: [0.84256256 0.11663083 0.02302917]
+Train PCA shape: (6472, 3)
+Test PCA shape: (3216, 3)
+Test accuracy: 0.5242537313432836
+              precision    recall  f1-score   support
+
+           1       0.65      0.51      0.58       809
+           2       0.45      0.55      0.50       803
+           3       0.41      0.32      0.36       797
+           4       0.60      0.70      0.65       807
+
+    accuracy                           0.52      3216
+   macro avg       0.53      0.52      0.52      3216
+weighted avg       0.53      0.52      0.52      3216
+
+Raw 10-d contour accuracy: 0.5659203980099502
+              precision    recall  f1-score   support
+
+           1       0.69      0.53      0.60       809
+           2       0.50      0.66      0.57       803
+           3       0.48      0.36      0.41       797
+           4       0.60      0.71      0.65       807
+
+    accuracy                           0.57      3216
+   macro avg       0.57      0.57      0.56      3216
+weighted avg       0.57      0.57      0.56      3216
+
+
+
+
+
+""""""""""
+n = 4
+""""""""""
+
+Explained variance ratio: [0.84256256 0.11663083 0.02302917 0.00825591]
+Train PCA shape: (6472, 4)
+Test PCA shape: (3216, 4)
+Test accuracy: 0.5192786069651741
+              precision    recall  f1-score   support
+
+           1       0.66      0.51      0.57       809
+           2       0.44      0.53      0.48       803
+           3       0.40      0.34      0.37       797
+           4       0.59      0.70      0.64       807
+
+    accuracy                           0.52      3216
+   macro avg       0.52      0.52      0.52      3216
+weighted avg       0.52      0.52      0.52      3216
+
+Raw 10-d contour accuracy: 0.5659203980099502
+              precision    recall  f1-score   support
+
+           1       0.69      0.53      0.60       809
+           2       0.50      0.66      0.57       803
+           3       0.48      0.36      0.41       797
+           4       0.60      0.71      0.65       807
+
+    accuracy                           0.57      3216
+   macro avg       0.57      0.57      0.56      3216
+weighted avg       0.57      0.57      0.56      3216
+
+
+
+
+
+
+
+"""""""""""
+n = k
+"""""""""""
+
+k= 1 | var=0.8426 | acc=0.5361
+k= 2 | var=0.9592 | acc=0.5246
+k= 3 | var=0.9822 | acc=0.5243
+k= 4 | var=0.9905 | acc=0.5193
+k= 5 | var=0.9944 | acc=0.5277
+k= 6 | var=0.9966 | acc=0.5354
+k= 7 | var=0.9979 | acc=0.5395
+k= 8 | var=0.9990 | acc=0.5451
+k= 9 | var=0.9997 | acc=0.5603
+k=10 | var=1.0000 | acc=0.5644
+
+
+# More explained variance does NOT monotonically improve classification.
+
+That is the main finding.
+
+Even though 2 PCs explain 96% of variance, they perform worse than 1 PC.
+
+That means:
+
+Some high-variance directions are not useful for tone labels and may interfere with linear classification.
+
+
+
+# Very interesting surprise: k=1 is strong
+
+One PC alone = 53.6%
+
+That means a single dominant contour factor carries a lot of tone information.
+
+Likely PC1 reflects something like:
+	•	global pitch height + contour direction
+
+This is huge.
+
+One scalar already beats many baselines you might expect.
+
+
+# Why k=2 to k=4 dips
+
+Likely the added PCs encode variation such as:
+	•	speaker residual style
+	•	syllable-specific articulation
+	•	local noise
+	•	interpolation variance
+
+These dimensions add variance but blur class boundaries.
+
+
+# Why k=9/10 recovers
+
+Once nearly all dimensions are restored, logistic regression can combine them and recover the original useful structure.
+
+So the “bad middle zone” is:
+	•	too compressed to preserve all useful cues
+	•	but includes some nuisance axes
+
+
+Strong interpretation sentence
+
+Tone-discriminative information is distributed across the contour space in a way that is not perfectly aligned with variance-ranked principal components. 
+High explained variance alone is therefore insufficient to guarantee optimal classification performance.
+
+
+
+The F0 analysis you just finished gives you a baseline for what simple contour geometry can do. Now you want to ask:
+	•	how well do hidden states classify tone?
+	•	how much of that is captured by top PCA directions?
+	•	does wav2vec PCA behave like F0 PCA, or differently?

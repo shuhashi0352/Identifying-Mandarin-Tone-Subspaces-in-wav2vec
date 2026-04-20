@@ -11,11 +11,14 @@ data:
   root_dir: "./data/"
   audio_mp3_dir: "./data/tone_perfect_mp3/"
   audio_xml_dir: "./data/tone_perfect_xml/"
+  textgrid_dir: "./data/mfa_textgrids/"
   metadata_path: "./data/metadata.csv"
-  audio_col: "audio_path"
+  mfa_dict_path: "./data/mfa_dictionary.txt"
+  audio_col: "wav_path"
   label_col: "tone"
-  speaker_col: "speaker_id"
+  speaker_col: "speaker"
   syllable_col: "syllable"
+  sound_col: "sound"
   tone_values: [1, 2, 3, 4]
   sample_rate: 16000
   use_vowel_region: false

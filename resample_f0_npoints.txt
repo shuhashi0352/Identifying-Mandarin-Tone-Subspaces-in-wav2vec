@@ -1,0 +1,83 @@
+num of frames
+
+min: 1
+max: 48
+mean: 6.779624277456647
+median: 5.0
+
+
+Interpretation
+
+Your typical token is:
+	•	median = 5 voiced points
+	•	mean = 6.78 voiced points
+
+So most contours are actually quite short.
+
+The max = 48 means some long tokens exist, but they are not typical.
+
+
+Better choices
+
+Strong recommendation: 10 points
+
+This is probably the safest default.
+
+Why:
+	•	enough to capture tone shape
+	•	not too inflated compared with median = 5
+	•	better for PCA stability
+
+Also reasonable: 8 points
+
+If you want compact robust representation.
+
+Maybe: 15 points
+
+If you want slightly finer temporal detail.
+
+
+
+
+My ranking for your dataset
+	1.	10 ← best starting point
+	2.	15 ← optional comparison
+	3.	8 ← robust compact baseline
+	4.	20 ← possible, but more interpolated than needed
+
+
+
+
+What I would do scientifically
+
+Run PCA with:
+	•	8
+	•	10
+	•	15
+
+Then ask:
+	•	do tones separate similarly?
+	•	do PC loadings look similar?
+	•	does the interpretation stay stable?
+
+If yes → your findings are robust.
+
+
+
+
+
+Important conceptual point
+
+Because your goal is likely:
+
+detect tone-shape structure
+
+you do not need ultra-high temporal resolution.
+
+Mandarin tones are broad contour patterns:
+	•	high level
+	•	rising
+	•	dipping
+	•	falling
+
+These can often be captured with ~10 normalized points.

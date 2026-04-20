@@ -1,93 +1,20 @@
 from pathlib import Path
 from typing import Set, List, Tuple
 import pandas as pd
-
+import yaml
 from pinyin_to_ipa import pinyin_to_ipa
 
-# -----------------------------
-# Config
-# -----------------------------
-CSV_PATH = "data/metadata.csv"
-TOKEN_COL = "sound"          # default: segmental syllable only
-WAV_COL = "wav_path"
-DICTIONARY_PATH = "data/mfa_dictionary.txt"
+def load_yaml(path): # "config.yaml"
+    with open(path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+# Skip writing .lab files if they already exist
 WRITE_LAB = True
 
-# dianr can be transcribed as [tjɐʵ] or [tjɐɻ]
-# either we consider ɐʵ as one or two phones
 # separating phones can make it harder to find the start and stop times
-SPLIT_PHONEMES = []  # e.g. [("ʵ", " ɻ"), ("˞", " ɻ"), ("ɚ", "ə ɻ"), ("aə", "a")]
+SPLIT_PHONEMES = [] 
 
-# Dictionary for erhua transformations
-# https://en.wikipedia.org/wiki/Erhua#Standard_rules
-ERHUA_SUFFIX_TO_IPA = {
-    "uangr": [["w", "ɑ̃ʵ"]],
-    "iangr": [["j", "ɑ̃ʵ"]],
-    "iongr": [["j", "ʊ̃ʵ"]],
-    "vanr": [["ɥ", "ɐʵ"]],
-    "uair": [["w", "ɐʵ"]],
-    "ianr": [["j", "ɐʵ"]],
-    "iaor": [["j", "ɑu̯˞"]],
-    "uanr": [["w", "ɐʵ"]],
-    "engr": [["ɤ̃ʵ"]],
-    "angr": [["ɑ̃ʵ"]],
-    "ongr": [["w", "ɤ̃ʵ"], ["ʊ̃˞"]],
-    "ingr": [["j", "ɤ̃ʵ"]],
-    "ver": [["ɥ", "œʵ"]],
-    "uar": [["w", "äʵ"], ["w", "ɐʵ"]],
-    "uor": [["w", "ɔʵ"]],
-    "air": [["ɐʵ"]],
-    "eir": [["ɚ"]],
-    "aor": [["ɑu̯˞"]],
-    "our": [["ou̯˞"]],
-    "anr": [["ɐʵ"]],
-    "enr": [["ɚ"]],
-    "iar": [["j", "äʵ"], ["j", "ɐʵ"]],
-    "ier": [["j", "ɛʵ"]],
-    "iur": [["j", "ou̯ʵ"]],
-    "inr": [["j", "ɚ"]],
-    "uir": [["w", "ɚ"]],
-    "unr": [["w", "ɚ"]],
-    "vnr": [["ɥ", "ɚ"]],
-    "ar": [["äʵ"], ["ɐʵ"]],
-    "or": [["ɔʵ"]],
-    "er": [["ɤʵ"]],
-    "ur": [["u˞"]],
-    "vr": [["ɥ", "ɚ"]],
-    "ir": [["ɚ"]],
-}
-
-
-def apply_erhua(pinyin: str, ipa: List[str]) -> List[List[str]]:
-    """
-    Apply erhua transformation to the given IPA representation.
-    Returns a list of possible IPA outputs.
-    """
-    ipa = ipa.copy()
-
-    if ipa and ipa[-1] in {"ŋ", "n"}:
-        ipa = ipa[:-1]
-
-    if len(ipa) > 1:
-        ipa = ipa[:-1]
-
-    results = []
-    for pinyin_ending, ipa_endings in ERHUA_SUFFIX_TO_IPA.items():
-        if pinyin.endswith(pinyin_ending) and pinyin != pinyin_ending:
-            for ipa_ending in ipa_endings:
-                new_ipa = ipa.copy()
-                new_ending = ipa_ending.copy()
-
-                if new_ipa and new_ending and new_ipa[-1] == new_ending[0]:
-                    new_ending = new_ending[1:]
-                elif new_ipa and new_ending and new_ipa[-1] + "˞" == new_ending[0]:
-                    new_ipa = []
-
-                results.append(new_ipa + new_ending)
-            break
-    return results
-
-def convert_pinyin_to_ipa(token: str) -> List[List[str]]:
+def convert_pinyin_to_ipa(token):
     """
     Convert one pinyin token to a simplified IPA output for MFA.
 
@@ -143,38 +70,36 @@ def convert_pinyin_to_ipa(token: str) -> List[List[str]]:
     # return only the first pronunciation
     return ipa_outputs[:1]
 
-
-def load_tokens_from_csv(csv_path: str | Path, token_col: str) -> Tuple[pd.DataFrame, Set[str]]:
+def load_tokens_from_csv(csv_path, token_col, wav_col):
     """
     Load metadata.csv and collect unique transcript tokens.
     """
     df = pd.read_csv(csv_path)
 
-    required_cols = {token_col, WAV_COL}
+    required_cols = {token_col, wav_col}
     missing = required_cols - set(df.columns)
     if missing:
         raise ValueError(f"Missing required column(s): {missing}")
 
     df = df.copy()
     df[token_col] = df[token_col].astype(str).str.strip().str.lower()
-    df[WAV_COL] = df[WAV_COL].astype(str).str.strip()
+    df[wav_col] = df[wav_col].astype(str).str.strip()
 
     # Remove missing/empty tokens and malformed wav paths
     df = df[(df[token_col] != "") & (df[token_col] != "nan")]
-    df = df[(df[WAV_COL] != "") & (df[WAV_COL] != "nan")]
+    df = df[(df[wav_col] != "") & (df[wav_col] != "nan")]
 
     tokens = set(df[token_col].unique())
     print(f"Number of unique tokens in '{token_col}': {len(tokens)}")
     return df, tokens
 
-
-def write_lab_files(df: pd.DataFrame, token_col: str) -> None:
+def write_lab_files(df, token_col, wav_col):
     """
     Create one .lab file next to each .wav file.
     For your dataset, each row is a single-syllable token.
     """
     for _, row in df.iterrows():
-        wav_path = Path(row[WAV_COL])
+        wav_path = Path(row[wav_col])
         transcript = row[token_col]
 
         lab_path = wav_path.with_suffix(".lab")
@@ -183,8 +108,7 @@ def write_lab_files(df: pd.DataFrame, token_col: str) -> None:
         with open(lab_path, "w", encoding="utf-8") as f:
             f.write(transcript)
 
-
-def generate_dictionary_entries(tokens: Set[str]) -> List[Tuple[str, str]]:
+def generate_dictionary_entries(tokens):
     """
     Build dictionary entries: token -> IPA sequence.
     """
@@ -220,12 +144,12 @@ def generate_dictionary_entries(tokens: Set[str]) -> List[Tuple[str, str]]:
 
     return entries
 
-
-def write_dictionary(entries: List[Tuple[str, str]], filename: str | Path) -> None:
+def write_dictionary(entries, filename):
     """
     Write MFA-style dictionary:
         token<TAB>ipa ipa ipa
     """
+    print(filename)
     filename = Path(filename)
     filename.parent.mkdir(parents=True, exist_ok=True)
 
@@ -233,16 +157,21 @@ def write_dictionary(entries: List[Tuple[str, str]], filename: str | Path) -> No
         for token, ipa in entries:
             f.write(f"{token}\t{ipa}\n")
 
+def create_dict(cfg):
+    DATA_PATH = cfg["data"]
+    CSV_PATH = DATA_PATH["metadata_path"]
+    TOKEN_COL = DATA_PATH["sound_col"]
+    WAV_COL = DATA_PATH["audio_col"]
+    DICT_PATH = DATA_PATH["mfa_dict_path"]
 
-def create_dict():
-    df, tokens = load_tokens_from_csv(CSV_PATH, TOKEN_COL)
+    df, tokens = load_tokens_from_csv(CSV_PATH, TOKEN_COL, WAV_COL)
 
     if WRITE_LAB:
         print("Writing .lab files...")
-        write_lab_files(df, TOKEN_COL)
+        write_lab_files(df, TOKEN_COL, WAV_COL)
 
     print("Generating dictionary...")
     entries = generate_dictionary_entries(tokens)
-    write_dictionary(entries, DICTIONARY_PATH)
+    write_dictionary(entries, DICT_PATH)
 
-    print(f"Dictionary written to: {DICTIONARY_PATH}")
+    print(f"Dictionary written to: {DICT_PATH}")
