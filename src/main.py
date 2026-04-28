@@ -11,6 +11,7 @@ from preprocess import create_train_test
 from pca import pca_classification, pca_classification_aggregate, run_hidden_pca, run_multi_layer_pca, run_pca_intervention, run_pca_intervention_analysis
 from probing import extract_hidden_states, run_split_hs, run_layerwise_probe
 from tone_supervised import run_supervized
+from train_das import run_das_best_layer
 from visualization import run_pca_visuals, run_pca_intervention_confusion_matrices
 
 def load_yaml(path): # "config.yaml"
@@ -115,7 +116,12 @@ def run_main(cfg):
     # PCA intervention visuals
     # run_pca_intervention_confusion_matrices(train_items, test_items, all_pc_df, layer_idx=6)
 
-    
+    """
+    from train_das import run_das
+    """
+    # DAS
+    das_metrics = run_das_best_layer(train_items, test_items, cfg, layer_idx=6, k=8)
+    print(das_metrics)
 
 
     

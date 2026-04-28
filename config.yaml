@@ -101,6 +101,15 @@ das:
   optimize_for: "intervention_success"
   save_subspaces: true
   subspace_dir: "./features/das_subspaces/"
+  seed: 42
+  batch_size: 64
+  epochs_clf: 50
+  epochs_das: 30
+  lr_clf: 0.001
+  lr_das: 0.0005
+  pairs_per_direction_train: 10
+  pairs_per_direction_test: 10
+  out_dir: results/das_layer6_k8
 
 # Comparison
 comparison:
