@@ -86,26 +86,26 @@ class ToneDataset(Dataset):
         return self.X[idx], self.y[idx]
 
 
-class SameSoundPairDataset(Dataset):
+class SameSoundSpeakerPairDataset(Dataset):
     """
-    Same-sound, different-tone DAS pairs.
+    Same-sound, same-speaker, different-tone DAS pairs.
 
-    This creates controlled pairs like:
+    Correct examples:
+        ma1_FV1 -> ma2_FV1
+        ma1_FV1 -> ma3_FV1
+        ma1_FV1 -> ma4_FV1
 
-        ma1  -> ma2
-        ma1  -> ma3
-        ma1  -> ma4
-
-    rather than uncontrolled pairs like:
-
-        ma1  -> shi4
+    Invalid examples excluded:
+        ma1_FV1 -> ma1_FV1   # same tone
+        ma1_FV1 -> ma4_FV2   # different speaker
+        ma1_FV1 -> ma1_FV2   # different speaker and same tone
 
     Each item returns:
         h_base, y_base, h_source, y_source
 
     DAS objective:
-        after replacing the first k DAS dimensions from source into base,
-        the classifier should predict y_source.
+        after replacing k DAS dimensions from source into base,
+        classifier should predict y_source.
     """
 
     def __init__(
@@ -113,48 +113,53 @@ class SameSoundPairDataset(Dataset):
         X: torch.Tensor,
         y: torch.Tensor,
         items: List[Dict[str, Any]],
-        pairs_per_direction: int,
         seed: int = 0,
         sound_key: str = "sound",
+        speaker_key: str = "speaker",
+        use_all_pairs: bool = True,
+        max_pairs_per_transition: int | None = None,
     ):
         self.X = X.float()
         self.y = y.long()
         self.items = items
-        self.pairs_per_direction = pairs_per_direction
         self.rng = np.random.default_rng(seed)
+
         self.sound_key = sound_key
+        self.speaker_key = speaker_key
+        self.use_all_pairs = use_all_pairs
+        self.max_pairs_per_transition = max_pairs_per_transition
 
         if len(self.X) != len(self.items):
             raise ValueError(
                 f"X/items length mismatch: len(X)={len(self.X)}, len(items)={len(self.items)}"
             )
 
-        self.sound_tone_to_indices = self._build_index()
+        self.group_tone_to_indices = self._build_index()
         self.pairs = self._make_pairs()
 
         if len(self.pairs) == 0:
             raise ValueError(
-                "No same-sound different-tone pairs were created. "
-                "Check whether each sound appears with multiple tones."
+                "No same-sound same-speaker different-tone pairs were created. "
+                "Check whether each (sound, speaker) group has multiple tones."
             )
 
-        print(f"[DAS pairs] Created {len(self.pairs)} same-sound pairs")
+        print(f"[DAS pairs] Created {len(self.pairs)} same-sound-same-speaker pairs")
 
-    def _build_index(self) -> Dict[str, Dict[int, List[int]]]:
+    def _build_index(self) -> Dict[Tuple[str, str], Dict[int, List[int]]]:
         """
         Build:
 
-            sound -> tone -> [indices]
+            (sound, speaker) -> tone -> [indices]
 
         Example:
-            'ma' -> {
-                0: [idxs for ma1],
-                1: [idxs for ma2],
-                2: [idxs for ma3],
-                3: [idxs for ma4],
+            ('ma', 'FV1') -> {
+                0: [idx for ma1_FV1],
+                1: [idx for ma2_FV1],
+                2: [idx for ma3_FV1],
+                3: [idx for ma4_FV1],
             }
         """
-        index: Dict[str, Dict[int, List[int]]] = {}
+        index: Dict[Tuple[str, str], Dict[int, List[int]]] = {}
 
         for i, item in enumerate(self.items):
             if self.sound_key not in item:
@@ -163,60 +168,120 @@ class SameSoundPairDataset(Dataset):
                     f"Available keys: {list(item.keys())}"
                 )
 
+            if self.speaker_key not in item:
+                raise KeyError(
+                    f"Could not find speaker key '{self.speaker_key}' in item. "
+                    f"Available keys: {list(item.keys())}"
+                )
+
             sound = str(item[self.sound_key])
+            speaker = str(item[self.speaker_key])
             tone = int(self.y[i].item())
 
-            if sound not in index:
-                index[sound] = {}
+            group = (sound, speaker)
 
-            if tone not in index[sound]:
-                index[sound][tone] = []
+            if group not in index:
+                index[group] = {}
 
-            index[sound][tone].append(i)
+            if tone not in index[group]:
+                index[group][tone] = []
+
+            index[group][tone].append(i)
 
         return index
 
     def _make_pairs(self):
         pairs = []
         transition_counts = {}
+        group_counts = {
+            "groups_total": 0,
+            "groups_with_at_least_2_tones": 0,
+            "groups_with_all_4_tones": 0,
+        }
 
-        for sound, tone_to_indices in self.sound_tone_to_indices.items():
+        for (sound, speaker), tone_to_indices in self.group_tone_to_indices.items():
+            group_counts["groups_total"] += 1
+
             tones = sorted(tone_to_indices.keys())
 
-            # Need at least two tones for this sound.
+            # Need at least two tones to make different-tone pairs.
             if len(tones) < 2:
                 continue
+
+            group_counts["groups_with_at_least_2_tones"] += 1
+
+            if len(tones) == 4:
+                group_counts["groups_with_all_4_tones"] += 1
 
             for y_base in tones:
                 for y_source in tones:
                     if y_base == y_source:
                         continue
 
-                    base_indices = tone_to_indices[y_base]
-                    source_indices = tone_to_indices[y_source]
+                    base_indices = list(tone_to_indices[y_base])
+                    source_indices = list(tone_to_indices[y_source])
+
+                    # All unique directed base/source index combinations.
+                    candidate_pairs = [
+                        (int(i_base), int(i_source))
+                        for i_base in base_indices
+                        for i_source in source_indices
+                        if int(i_base) != int(i_source)
+                    ]
+
+                    if len(candidate_pairs) == 0:
+                        continue
+
+                    if self.use_all_pairs:
+                        chosen_pairs = candidate_pairs
+                    else:
+                        if self.max_pairs_per_transition is None:
+                            raise ValueError(
+                                "max_pairs_per_transition must be set when use_all_pairs=False"
+                            )
+
+                        n_sample = min(
+                            self.max_pairs_per_transition,
+                            len(candidate_pairs),
+                        )
+
+                        chosen_idx = self.rng.choice(
+                            len(candidate_pairs),
+                            size=n_sample,
+                            replace=False,
+                        )
+
+                        chosen_pairs = [candidate_pairs[int(j)] for j in chosen_idx]
+
+                    pairs.extend(chosen_pairs)
 
                     transition_key = f"{y_base}->{y_source}"
-                    transition_counts[transition_key] = transition_counts.get(transition_key, 0) + 1
-
-                    for _ in range(self.pairs_per_direction):
-                        i_base = int(self.rng.choice(base_indices))
-                        i_source = int(self.rng.choice(source_indices))
-                        pairs.append((i_base, i_source))
+                    transition_counts[transition_key] = (
+                        transition_counts.get(transition_key, 0) + len(chosen_pairs)
+                    )
 
         self.rng.shuffle(pairs)
-        print("[DAS pairs] Example same-sound pairs:")
+
+        print("[DAS pairs] Group counts:")
+        for key, value in group_counts.items():
+            print(f"  {key}: {value}")
+
+        print("[DAS pairs] Same-sound same-speaker pairs by transition:")
+        for key, count in sorted(transition_counts.items()):
+            print(f"  {key}: {count} pairs")
+
+        print("[DAS pairs] Example pairs:")
         for i_base, i_source in pairs[:10]:
             base_item = self.items[i_base]
             source_item = self.items[i_source]
 
             print(
-                f"  sound={base_item[self.sound_key]} | "
-                f"{int(self.y[i_base].item())}->{int(self.y[i_source].item())}"
+                f"  "
+                f"{base_item[self.sound_key]} | "
+                f"speaker={base_item[self.speaker_key]} | "
+                f"{int(self.y[i_base].item())}->{int(self.y[i_source].item())} | "
+                f"indices {i_base}->{i_source}"
             )
-
-        print("[DAS pairs] Available same-sound transition types:")
-        for key, count in sorted(transition_counts.items()):
-            print(f"  {key}: {count} sounds")
 
         return pairs
 
@@ -478,9 +543,21 @@ def train_das_rotation(
     for p in classifier.parameters():
         p.requires_grad = False
 
-    train_pairs = SameSoundPairDataset(X_train, y_train, train_items, pairs_per_direction_train, seed)
+    train_pairs = SameSoundSpeakerPairDataset(
+        X=X_train,
+        y=y_train,
+        items=train_items,
+        seed=seed,
+        use_all_pairs=True,
+    )
 
-    test_pairs = SameSoundPairDataset(X_test, y_test, test_items, pairs_per_direction_test, seed + 1)
+    test_pairs = SameSoundSpeakerPairDataset(
+        X=X_test,
+        y=y_test,
+        items=test_items,
+        seed=seed + 1,
+        use_all_pairs=True,
+    )
 
     loader = DataLoader(
         train_pairs,
@@ -637,3 +714,210 @@ def run_das_best_layer(
     print(f"[DAS] saved metrics:    {out_dir / 'metrics.json'}")
 
     return metrics
+
+def run_das_layer_sweep(
+    train_items: List[Dict[str, Any]],
+    test_items: List[Dict[str, Any]],
+    cfg: Dict[str, Any],
+) -> List[Dict[str, Any]]:
+    """
+    Run same-sound DAS over multiple layers and k values.
+
+    Expected config:
+
+    das:
+      seed: 42
+      batch_size: 64
+      epochs_clf: 50
+      epochs_das: 30
+      lr_clf: 0.001
+      lr_das: 0.0005
+      pairs_per_direction_train: 5
+      pairs_per_direction_test: 5
+      layers: [0, 2, 4, 6, 8, 10, 12]
+      k_values: [4]
+      out_dir: ./results/das_layer_sweep
+    """
+
+    das_cfg = cfg.get("das", {})
+
+    seed = int(das_cfg.get("seed", 42))
+    batch_size = int(das_cfg.get("batch_size", 64))
+    epochs_clf = int(das_cfg.get("epochs_clf", 50))
+    epochs_das = int(das_cfg.get("epochs_das", 30))
+    lr_clf = float(das_cfg.get("lr_clf", 1e-3))
+    lr_das = float(das_cfg.get("lr_das", 5e-4))
+    pairs_per_direction_train = int(das_cfg.get("pairs_per_direction_train", 5))
+    pairs_per_direction_test = int(das_cfg.get("pairs_per_direction_test", 5))
+
+    layers = das_cfg.get("layers", [0, 2, 4, 6, 8, 10, 12])
+    k_values = das_cfg.get("k_values", [4])
+
+    layers = [int(x) for x in layers]
+    k_values = [int(x) for x in k_values]
+
+    out_dir = Path(das_cfg.get("out_dir", "./results/das_layer_sweep"))
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    set_seed(seed)
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"[DAS sweep] device={device}")
+    print(f"[DAS sweep] layers={layers}")
+    print(f"[DAS sweep] k_values={k_values}")
+
+    all_results: List[Dict[str, Any]] = []
+
+    for layer_idx in layers:
+        print("\n" + "=" * 80)
+        print(f"[DAS sweep] Starting layer {layer_idx}")
+        print("=" * 80)
+
+        # -------------------------
+        # 1. Extract layer vectors
+        # -------------------------
+        X_train, y_train = items_to_X_y(train_items, layer_idx=layer_idx)
+        X_test, y_test = items_to_X_y(test_items, layer_idx=layer_idx)
+
+        # -------------------------
+        # 2. Standardize by train stats
+        # -------------------------
+        mean = X_train.mean(dim=0, keepdim=True)
+        std = X_train.std(dim=0, keepdim=True).clamp_min(1e-6)
+
+        X_train_std = (X_train - mean) / std
+        X_test_std = (X_test - mean) / std
+
+        num_classes = int(max(y_train.max().item(), y_test.max().item()) + 1)
+
+        # -------------------------
+        # 3. Train classifier once per layer
+        # -------------------------
+        classifier = train_classifier(
+            X_train=X_train_std,
+            y_train=y_train,
+            X_test=X_test_std,
+            y_test=y_test,
+            num_classes=num_classes,
+            batch_size=batch_size,
+            epochs=epochs_clf,
+            lr=lr_clf,
+            device=device,
+        )
+
+        classifier_test_acc = eval_classifier_acc(
+            classifier,
+            X_test_std,
+            y_test,
+            device,
+        )
+
+        print(
+            f"[DAS sweep] layer={layer_idx} "
+            f"classifier_test_acc={classifier_test_acc:.4f}"
+        )
+
+        # Save classifier for this layer
+        layer_dir = out_dir / f"layer_{layer_idx}"
+        layer_dir.mkdir(parents=True, exist_ok=True)
+
+        torch.save(
+            {
+                "layer_idx": layer_idx,
+                "mean": mean,
+                "std": std,
+                "classifier_state_dict": classifier.state_dict(),
+                "classifier_test_acc": classifier_test_acc,
+                "das_cfg": das_cfg,
+            },
+            layer_dir / "classifier.pt",
+        )
+
+        # -------------------------
+        # 4. Train DAS for each k
+        # -------------------------
+        for k in k_values:
+            print("\n" + "-" * 80)
+            print(f"[DAS sweep] Layer {layer_idx}, k={k}")
+            print("-" * 80)
+
+            das, metrics = train_das_rotation(
+                classifier=classifier,
+                X_train=X_train_std,
+                y_train=y_train,
+                X_test=X_test_std,
+                y_test=y_test,
+                train_items=train_items,
+                test_items=test_items,
+                k=k,
+                batch_size=batch_size,
+                epochs=epochs_das,
+                lr=lr_das,
+                pairs_per_direction_train=pairs_per_direction_train,
+                pairs_per_direction_test=pairs_per_direction_test,
+                seed=seed + layer_idx * 1000 + k,
+                device=device,
+            )
+
+            metrics["layer_idx"] = int(layer_idx)
+            metrics["k"] = int(k)
+            metrics["classifier_test_acc"] = float(classifier_test_acc)
+
+            all_results.append(metrics)
+
+            k_dir = layer_dir / f"k_{k}"
+            k_dir.mkdir(parents=True, exist_ok=True)
+
+            torch.save(
+                {
+                    "layer_idx": layer_idx,
+                    "k": k,
+                    "metrics": metrics,
+                    "mean": mean,
+                    "std": std,
+                    "classifier_state_dict": classifier.state_dict(),
+                    "das_state_dict": das.state_dict(),
+                    "classifier_test_acc": classifier_test_acc,
+                    "das_cfg": das_cfg,
+                },
+                k_dir / "checkpoint.pt",
+            )
+
+            with open(k_dir / "metrics.json", "w", encoding="utf-8") as f:
+                json.dump(metrics, f, indent=2, ensure_ascii=False)
+
+            # Save combined results after every run, so progress is not lost.
+            with open(out_dir / "all_metrics.json", "w", encoding="utf-8") as f:
+                json.dump(all_results, f, indent=2, ensure_ascii=False)
+
+            print(
+                f"[DAS sweep] Saved layer={layer_idx}, k={k} metrics to "
+                f"{k_dir / 'metrics.json'}"
+            )
+
+    # -------------------------
+    # 5. Save compact CSV summary
+    # -------------------------
+    csv_path = out_dir / "summary.csv"
+
+    with open(csv_path, "w", encoding="utf-8") as f:
+        f.write(
+            "layer_idx,k,classifier_test_acc,target_success_rate,"
+            "target_success_given_base_correct,flip_rate,num_pairs\n"
+        )
+
+        for m in all_results:
+            f.write(
+                f"{m['layer_idx']},"
+                f"{m['k']},"
+                f"{m['classifier_test_acc']},"
+                f"{m['target_success_rate']},"
+                f"{m['target_success_given_base_correct']},"
+                f"{m['flip_rate']},"
+                f"{m['num_pairs']}\n"
+            )
+
+    print(f"[DAS sweep] saved all metrics: {out_dir / 'all_metrics.json'}")
+    print(f"[DAS sweep] saved summary CSV: {csv_path}")
+
+    return all_results

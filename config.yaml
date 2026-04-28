@@ -143,3 +143,15 @@ output:
   plot_dir: "./artifacts/plots/"
   save_metrics_csv: true
   metrics_path: "./artifacts/metrics.csv"
+
+# DAS
+# das:
+#   seed: 42
+#   batch_size: 64
+#   epochs_clf: 50
+#   epochs_das: 30
+#   lr_clf: 0.001
+#   lr_das: 0.0005
+#   layers: [0, 2, 4, 6, 8, 10, 12]
+#   k_values: [4]
+#   out_dir: ./results/das_layer_sweep
