@@ -756,7 +756,7 @@ def run_das_layer_sweep(
     layers = [int(x) for x in layers]
     k_values = [int(x) for x in k_values]
 
-    out_dir = Path(das_cfg.get("out_dir", "./results/das_layer_sweep"))
+    out_dir = Path(das_cfg.get("out_dir_sweep", "./results/das_layer_sweep"))
     out_dir.mkdir(parents=True, exist_ok=True)
 
     set_seed(seed)

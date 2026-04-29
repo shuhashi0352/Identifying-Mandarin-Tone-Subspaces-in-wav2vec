@@ -12,7 +12,7 @@ from pca import pca_classification, pca_classification_aggregate, run_hidden_pca
 from probing import extract_hidden_states, run_split_hs, run_layerwise_probe
 from tone_supervised import run_supervized
 from train_das import run_das_best_layer, run_das_layer_sweep
-from visualization import run_pca_visuals, run_pca_intervention_confusion_matrices
+from visualization import run_pca_visuals, run_pca_intervention_confusion_matrices, save_probe_results, plot_layerwise_probe, load_json, plot_das_transition_heatmap_from_metrics, run_das_visuals
 
 def load_yaml(path): # "config.yaml"
     with open(path, "r", encoding="utf-8") as f:
@@ -86,7 +86,11 @@ def run_main(cfg):
     # Hidden states split
     x_train_l0, y_train, x_test_l0, y_test, train_items, test_items = run_split_hs(hs_results, train_df, test_df)
     # Probing using lg
-    run_layerwise_probe(train_items, test_items)
+    probe_results = run_layerwise_probe(train_items, test_items)
+
+    save_probe_results(probe_results, out_path="./results/probing/layerwise_probe_results.csv")
+
+    plot_layerwise_probe(probe_results, out_path="./results/probing/layerwise_probe_accuracy.png")
 
     """
     from pca import run_hidden_pca
@@ -108,27 +112,32 @@ def run_main(cfg):
     all_pc_df = run_pca_intervention(train_items, test_items)
 
     # PCA intervention analysis/visuals
-    # run_pca_intervention_analysis(all_pc_df)
+    run_pca_intervention_analysis(all_pc_df)
 
     """
     from visualization import run_pca_intervention_confusion_matrices
     """    
     # PCA intervention visuals
-    # run_pca_intervention_confusion_matrices(train_items, test_items, all_pc_df, layer_idx=6)
+    run_pca_intervention_confusion_matrices(train_items, test_items, all_pc_df, layer_idx=6)
 
     """
     from train_das import run_das
     """
     # DAS for a single (best) layer
-    das_metrics = run_das_best_layer(train_items, test_items, cfg, layer_idx=6, k=8)
-    print(das_metrics)
+    # das_metrics = run_das_best_layer(train_items, test_items, cfg, layer_idx=6, k=2)
+    # print(das_metrics)
     # DAS for multiple layers
-    # das_results = run_das_layer_sweep(train_items, test_items, cfg)
-    # print(das_results)
+    das_results = run_das_layer_sweep(train_items, test_items, cfg)
+    print(das_results)
 
+    metrics = load_json("./results/das_layer_sweep/layer_6/k_4/metrics.json")
 
-    
+    plot_das_transition_heatmap_from_metrics(metrics, out_path="./results/das_layer_sweep/layer6_k4_transition_heatmap.png", title="Layer 6 DAS Transition Success, k=4")
 
+    das_results = run_das_layer_sweep(train_items, test_items, cfg)
+    print(das_results)
+
+    run_das_visuals(metrics_path="./results/das_layer_sweep/all_metrics.json", out_dir="./results/das_layer_sweep/figures", k_for_comparison=4)
 
 if __name__ == "__main__":
     ROOT = Path(__file__).resolve().parents[1]

@@ -1,3 +1,4 @@
+from __future__ import annotations
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -5,6 +6,10 @@ from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 from probing import build_layer_xy
+
+import json
+from pathlib import Path
+from typing import Any, Dict, List, Sequence
 
 # ks = [1,2,3,4,5,6,7,8,9,10]
 # accs = [0.5361,0.5246,0.5243,0.5193,0.5277,0.5354,0.5395,0.5451,0.5603,0.5644]
@@ -380,3 +385,406 @@ def run_pca_intervention_confusion_matrices(train_items, test_items, all_pc_df, 
 
     plot_transition_heatmap(all_pc_df, pc_idx=4, delta=3, normalize=False)
     plot_true_to_after_heatmap(all_pc_df, pc_idx=4, delta=3, normalize=False)
+
+# -------------------------
+# General helpers
+# -------------------------
+
+def ensure_parent(path: str | Path) -> Path:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def load_json(path: str | Path) -> Any:
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+# -------------------------
+# Probing visualizations
+# -------------------------
+
+def save_probe_results(
+    probe_results: List[Dict[str, Any]],
+    out_path: str | Path = "./results/probing/layerwise_probe_results.csv",
+) -> pd.DataFrame:
+    """
+    Save layerwise probe results.
+
+    Expected probe_results:
+        [
+            {"layer": 0, "accuracy": 0.90},
+            {"layer": 1, "accuracy": 0.91},
+            ...
+        ]
+    """
+    out_path = ensure_parent(out_path)
+
+    df = pd.DataFrame(probe_results)
+    df = df.sort_values("layer").reset_index(drop=True)
+    df.to_csv(out_path, index=False)
+
+    print(f"[visualization] saved probe CSV: {out_path}")
+    return df
+
+
+def plot_layerwise_probe(
+    probe_results: List[Dict[str, Any]] | pd.DataFrame,
+    out_path: str | Path = "./results/probing/layerwise_probe_accuracy.png",
+    title: str = "Layerwise Tone Probing Accuracy",
+) -> pd.DataFrame:
+    """
+    Plot probe accuracy by wav2vec layer.
+    """
+    out_path = ensure_parent(out_path)
+
+    if isinstance(probe_results, pd.DataFrame):
+        df = probe_results.copy()
+    else:
+        df = pd.DataFrame(probe_results)
+
+    df = df.sort_values("layer").reset_index(drop=True)
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    ax.plot(df["layer"], df["accuracy"], marker="o")
+    ax.set_xlabel("Layer")
+    ax.set_ylabel("Accuracy")
+    ax.set_title(title)
+    ax.set_xticks(df["layer"].tolist())
+    ax.set_ylim(0.0, 1.0)
+    ax.grid(True, alpha=0.3)
+
+    best_idx = df["accuracy"].idxmax()
+    best_layer = int(df.loc[best_idx, "layer"])
+    best_acc = float(df.loc[best_idx, "accuracy"])
+
+    ax.scatter([best_layer], [best_acc], s=80)
+    ax.annotate(
+        f"Best L{best_layer}\n{best_acc:.3f}",
+        xy=(best_layer, best_acc),
+        xytext=(best_layer, min(best_acc + 0.08, 0.98)),
+        ha="center",
+        arrowprops={"arrowstyle": "->"},
+    )
+
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=300)
+    plt.close(fig)
+
+    print(f"[visualization] saved probe plot: {out_path}")
+    return df
+
+
+# -------------------------
+# DAS result loading
+# -------------------------
+
+def das_metrics_to_df(metrics: List[Dict[str, Any]]) -> pd.DataFrame:
+    """
+    Convert DAS all_metrics list into a compact dataframe.
+    """
+    rows = []
+
+    for m in metrics:
+        rows.append(
+            {
+                "layer_idx": int(m["layer_idx"]),
+                "k": int(m["k"]),
+                "classifier_test_acc": float(m.get("classifier_test_acc", np.nan)),
+                "target_success_rate": float(m["target_success_rate"]),
+                "target_success_given_base_correct": float(
+                    m.get("target_success_given_base_correct", np.nan)
+                ),
+                "flip_rate": float(m["flip_rate"]),
+                "num_pairs": int(m["num_pairs"]),
+            }
+        )
+
+    df = pd.DataFrame(rows)
+    df = df.sort_values(["layer_idx", "k"]).reset_index(drop=True)
+    return df
+
+
+def load_das_sweep(
+    metrics_path: str | Path = "./results/das_layer_sweep/all_metrics.json",
+) -> pd.DataFrame:
+    metrics = load_json(metrics_path)
+    return das_metrics_to_df(metrics)
+
+
+def save_das_summary_csv(
+    df: pd.DataFrame,
+    out_path: str | Path = "./results/das_layer_sweep/das_summary.csv",
+) -> None:
+    out_path = ensure_parent(out_path)
+    df.to_csv(out_path, index=False)
+    print(f"[visualization] saved DAS summary CSV: {out_path}")
+
+def plot_das_target_success_by_layer(
+    df: pd.DataFrame,
+    out_path: str | Path = "./results/das_layer_sweep/das_target_success_by_layer.png",
+    title: str = "DAS Target Success by Layer",
+) -> pd.DataFrame:
+    """
+    One line per k.
+    x-axis: layer
+    y-axis: target_success_rate
+    """
+    out_path = ensure_parent(out_path)
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    for k, sub in df.groupby("k"):
+        sub = sub.sort_values("layer_idx")
+        ax.plot(
+            sub["layer_idx"],
+            sub["target_success_rate"],
+            marker="o",
+            label=f"k={k}",
+        )
+
+    ax.set_xlabel("Layer")
+    ax.set_ylabel("Target Success Rate")
+    ax.set_title(title)
+    ax.set_ylim(0.0, 1.0)
+    ax.set_xticks(sorted(df["layer_idx"].unique().tolist()))
+    ax.grid(True, alpha=0.3)
+    ax.legend(title="DAS dimensions")
+
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=300)
+    plt.close(fig)
+
+    print(f"[visualization] saved DAS layer plot: {out_path}")
+    return df
+
+
+def plot_das_vs_classifier_by_layer(
+    df: pd.DataFrame,
+    out_path: str | Path = "./results/das_layer_sweep/das_vs_classifier_by_layer.png",
+    k_for_das: int = 4,
+    title: str = "DAS Target Success vs. Classifier Accuracy",
+) -> pd.DataFrame:
+    """
+    Compare ordinary classifier accuracy and DAS target success for one k.
+    """
+    out_path = ensure_parent(out_path)
+
+    sub = df[df["k"] == k_for_das].copy()
+    sub = sub.sort_values("layer_idx")
+
+    if sub.empty:
+        raise ValueError(f"No DAS results found for k={k_for_das}")
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    ax.plot(
+        sub["layer_idx"],
+        sub["classifier_test_acc"],
+        marker="o",
+        label="Classifier accuracy",
+    )
+    ax.plot(
+        sub["layer_idx"],
+        sub["target_success_rate"],
+        marker="s",
+        label=f"DAS target success, k={k_for_das}",
+    )
+
+    ax.set_xlabel("Layer")
+    ax.set_ylabel("Score")
+    ax.set_title(title)
+    ax.set_ylim(0.0, 1.0)
+    ax.set_xticks(sub["layer_idx"].tolist())
+    ax.grid(True, alpha=0.3)
+    ax.legend()
+
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=300)
+    plt.close(fig)
+
+    print(f"[visualization] saved DAS-vs-classifier plot: {out_path}")
+    return sub
+
+
+def plot_das_k_saturation(
+    df: pd.DataFrame,
+    out_path: str | Path = "./results/das_layer_sweep/das_k_saturation.png",
+    selected_layers: Sequence[int] | None = None,
+    title: str = "DAS k-Saturation Curve",
+) -> pd.DataFrame:
+    """
+    One line per layer.
+    x-axis: k
+    y-axis: target_success_rate
+    """
+    out_path = ensure_parent(out_path)
+
+    plot_df = df.copy()
+
+    if selected_layers is not None:
+        plot_df = plot_df[plot_df["layer_idx"].isin(selected_layers)].copy()
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    for layer_idx, sub in plot_df.groupby("layer_idx"):
+        sub = sub.sort_values("k")
+        ax.plot(
+            sub["k"],
+            sub["target_success_rate"],
+            marker="o",
+            label=f"L{layer_idx}",
+        )
+
+    ax.set_xlabel("DAS subspace size k")
+    ax.set_ylabel("Target Success Rate")
+    ax.set_title(title)
+    ax.set_ylim(0.0, 1.0)
+    ax.set_xticks(sorted(plot_df["k"].unique().tolist()))
+    ax.grid(True, alpha=0.3)
+    ax.legend(title="Layer", ncol=2)
+
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=300)
+    plt.close(fig)
+
+    print(f"[visualization] saved DAS k-saturation plot: {out_path}")
+    return plot_df
+
+
+def transition_metrics_to_matrix(
+    transition_metrics: Dict[str, Dict[str, float]],
+    value_key: str = "target_success_rate",
+    n_classes: int = 4,
+) -> np.ndarray:
+    """
+    Convert:
+        {"0->1": {"target_success_rate": ...}, ...}
+
+    into a 4x4 matrix.
+
+    Diagonal is NaN because no same-tone interventions are used.
+    """
+    mat = np.full((n_classes, n_classes), np.nan)
+
+    for transition, vals in transition_metrics.items():
+        src, tgt = transition.split("->")
+        src = int(src)
+        tgt = int(tgt)
+        mat[src, tgt] = float(vals[value_key])
+
+    return mat
+
+
+def plot_das_transition_heatmap_from_metrics(
+    metrics: Dict[str, Any],
+    out_path: str | Path,
+    value_key: str = "target_success_rate",
+    title: str | None = None,
+    class_labels: Sequence[str] = ("T1", "T2", "T3", "T4"),
+) -> np.ndarray:
+    """
+    Plot transition heatmap for a single DAS metrics object.
+    Rows = base tone
+    Columns = source/target tone
+    """
+    out_path = ensure_parent(out_path)
+
+    mat = transition_metrics_to_matrix(
+        metrics["transition_metrics"],
+        value_key=value_key,
+        n_classes=len(class_labels),
+    )
+
+    fig, ax = plt.subplots(figsize=(6, 5))
+
+    im = ax.imshow(mat, vmin=0.0, vmax=1.0)
+
+    ax.set_xticks(np.arange(len(class_labels)))
+    ax.set_yticks(np.arange(len(class_labels)))
+    ax.set_xticklabels(class_labels)
+    ax.set_yticklabels(class_labels)
+
+    ax.set_xlabel("Source / target tone")
+    ax.set_ylabel("Base tone")
+
+    if title is None:
+        layer = metrics.get("layer_idx", "?")
+        k = metrics.get("k", "?")
+        title = f"DAS Transition Success, Layer {layer}, k={k}"
+
+    ax.set_title(title)
+
+    for i in range(mat.shape[0]):
+        for j in range(mat.shape[1]):
+            if np.isnan(mat[i, j]):
+                text = "-"
+            else:
+                text = f"{mat[i, j]:.2f}"
+
+            ax.text(j, i, text, ha="center", va="center")
+
+    fig.colorbar(im, ax=ax, label=value_key)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=300)
+    plt.close(fig)
+
+    print(f"[visualization] saved transition heatmap: {out_path}")
+    return mat
+
+def run_das_visuals(
+    metrics_path: str | Path = "./results/das_layer_sweep/all_metrics.json",
+    out_dir: str | Path = "./results/das_layer_sweep/figures",
+    k_for_comparison: int = 4,
+) -> pd.DataFrame:
+    """
+    Generate standard DAS visualizations from all_metrics.json.
+    """
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    df = load_das_sweep(metrics_path)
+
+    save_das_summary_csv(
+        df,
+        out_path=out_dir / "das_summary.csv",
+    )
+
+    plot_das_target_success_by_layer(
+        df,
+        out_path=out_dir / "das_target_success_by_layer.png",
+    )
+
+    plot_das_vs_classifier_by_layer(
+        df,
+        out_path=out_dir / "das_vs_classifier_by_layer.png",
+        k_for_das=k_for_comparison,
+    )
+
+    plot_das_k_saturation(
+        df,
+        out_path=out_dir / "das_k_saturation_all_layers.png",
+    )
+
+    plot_das_k_saturation(
+        df,
+        out_path=out_dir / "das_k_saturation_selected_layers.png",
+        selected_layers=[0, 2, 6, 8, 12],
+    )
+
+    # Transition heatmap for best layer/k if available.
+    layer6_k4_path = Path(metrics_path).parent / "layer_6" / "k_4" / "metrics.json"
+
+    if layer6_k4_path.exists():
+        metrics = load_json(layer6_k4_path)
+        plot_das_transition_heatmap_from_metrics(
+            metrics,
+            out_path=out_dir / "layer6_k4_transition_heatmap.png",
+            title="Layer 6 DAS Transition Success, k=4",
+        )
+    else:
+        print(f"[visualization] skipped heatmap; file not found: {layer6_k4_path}")
+
+    return df
