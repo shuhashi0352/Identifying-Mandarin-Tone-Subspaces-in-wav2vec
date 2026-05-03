@@ -126,6 +126,55 @@ def run_pca_visuals(multi_df):
 
 # PCA intervention visuals
 
+def plot_pca_macro_f1_by_layer_and_k(
+    pca_df,
+    out_path="./results/pca/pca_macro_f1_by_layer_and_k.png",
+    title="Tone Classification Macro F1 vs. PCA Dimensions",
+):
+    """
+    Plot PCA classification macro F1 by k for each layer.
+
+    Expected columns:
+        layer, k, macro_f1
+    """
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    df = pca_df.copy()
+
+    if "macro_f1" not in df.columns:
+        raise ValueError(
+            f"'macro_f1' column not found. Available columns: {df.columns.tolist()}"
+        )
+
+    fig, ax = plt.subplots(figsize=(10, 5))
+
+    for layer_idx, sub in df.groupby("layer"):
+        sub = sub.sort_values("k")
+        ax.plot(
+            sub["k"],
+            sub["macro_f1"],
+            marker="o",
+            linewidth=1.8,
+            label=f"Layer {layer_idx}",
+        )
+
+    ax.set_title(title, fontsize=15, pad=12)
+    ax.set_xlabel("Number of PCA dimensions (k)", fontsize=12)
+    ax.set_ylabel("Macro F1", fontsize=12)
+
+    ax.set_ylim(0.0, 1.0)
+    ax.set_xticks(sorted(df["k"].unique().tolist()))
+    ax.grid(True, alpha=0.25)
+    ax.legend(fontsize=8, ncol=2)
+
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=300)
+    plt.close(fig)
+
+    print(f"[PCA visualization] saved macro F1 plot: {out_path}")
+    return df
+
 
 # ----------------------------
 # 1) Standard confusion matrix
@@ -474,6 +523,99 @@ def plot_layerwise_probe(
     plt.close(fig)
 
     print(f"[visualization] saved probe plot: {out_path}")
+    return df
+
+
+def save_layerwise_probe_results(
+    probe_results: List[Dict[str, Any]],
+    out_path: str = "./results/probing/layerwise_probe_results.csv",
+) -> pd.DataFrame:
+    """
+    Save layerwise probe results containing accuracy and macro F1.
+    """
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    df = pd.DataFrame(probe_results)
+    df = df.sort_values("layer").reset_index(drop=True)
+    df.to_csv(out_path, index=False)
+
+    print(f"[probe visualization] saved CSV: {out_path}")
+    return df
+
+
+def plot_layerwise_probe_f1(
+    probe_results,
+    out_path: str = "./results/probing/layerwise_probe_macro_f1.png",
+    title: str = "Layerwise Tone Probing Macro F1",
+) -> pd.DataFrame:
+    """
+    Plot only layerwise macro F1.
+
+    Input can be:
+      - list of dicts returned by run_layerwise_probe()
+      - pandas DataFrame
+      - path to CSV
+    """
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    if isinstance(probe_results, (str, Path)):
+        df = pd.read_csv(probe_results)
+    elif isinstance(probe_results, pd.DataFrame):
+        df = probe_results.copy()
+    else:
+        df = pd.DataFrame(probe_results)
+
+    if "macro_f1" not in df.columns:
+        raise ValueError(
+            f"'macro_f1' column not found. Available columns: {df.columns.tolist()}"
+        )
+
+    df = df.sort_values("layer").reset_index(drop=True)
+
+    fig, ax = plt.subplots(figsize=(9, 5))
+
+    ax.plot(
+        df["layer"],
+        df["macro_f1"],
+        marker="o",
+        linewidth=2,
+    )
+
+    best_idx = df["macro_f1"].idxmax()
+    best_layer = int(df.loc[best_idx, "layer"])
+    best_f1 = float(df.loc[best_idx, "macro_f1"])
+
+    ax.scatter(
+        [best_layer],
+        [best_f1],
+        s=90,
+        zorder=3,
+    )
+
+    ax.annotate(
+        f"Best: Layer {best_layer}\nMacro F1 = {best_f1:.3f}",
+        xy=(best_layer, best_f1),
+        xytext=(best_layer, min(best_f1 + 0.045, 0.99)),
+        ha="center",
+        fontsize=10,
+        arrowprops={"arrowstyle": "->", "lw": 1.2},
+    )
+
+    ax.set_title(title, fontsize=16, pad=14)
+    ax.set_xlabel("wav2vec layer", fontsize=12)
+    ax.set_ylabel("Macro F1", fontsize=12)
+
+    ax.set_xticks(df["layer"].tolist())
+    ax.set_ylim(0.0, 1.0)
+    ax.grid(True, alpha=0.25)
+
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=300)
+    plt.close(fig)
+
+    print(f"[probe visualization] saved F1 plot: {out_path}")
     return df
 
 

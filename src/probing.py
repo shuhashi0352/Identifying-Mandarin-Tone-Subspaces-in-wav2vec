@@ -6,7 +6,7 @@ import torchaudio
 from transformers import Wav2Vec2Processor, Wav2Vec2Model
 from tqdm import tqdm
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, f1_score
 
 def load_wav(wav_path):
     """
@@ -200,11 +200,13 @@ def run_layerwise_probe(train_items, test_items):
         y_pred = clf.predict(x_test)
 
         acc = accuracy_score(y_test, y_pred)
+        macro_f1 = f1_score(y_test, y_pred, average="macro")
         results.append({
             "layer": layer_idx,
             "accuracy": acc,
+            "macro_f1": macro_f1,
         })
 
-        print(f"Layer {layer_idx:2d} | acc = {acc:.4f}")
+        print(f"Layer {layer_idx:2d} | acc = {acc:.4f} | macro_f1 = {macro_f1:.4f}")
 
     return results

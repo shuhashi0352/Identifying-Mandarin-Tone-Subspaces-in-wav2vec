@@ -8,11 +8,11 @@ from f0_standardization import speaker_zscore
 from f0_interpolate import resample_f0
 from speaker_stratification import run_stratification
 from preprocess import create_train_test
-from pca import pca_classification, pca_classification_aggregate, run_hidden_pca, run_multi_layer_pca, run_pca_intervention, run_pca_intervention_analysis
+from pca import run_multi_layer_pca, run_pca_intervention, run_pca_intervention_analysis
 from probing import extract_hidden_states, run_split_hs, run_layerwise_probe
 from tone_supervised import run_supervized
 from train_das import run_das_best_layer, run_das_layer_sweep
-from visualization import run_pca_visuals, run_pca_intervention_confusion_matrices, save_probe_results, plot_layerwise_probe, load_json, plot_das_transition_heatmap_from_metrics, run_das_visuals
+from visualization import run_pca_visuals, run_pca_intervention_confusion_matrices, save_probe_results, plot_layerwise_probe, load_json, plot_das_transition_heatmap_from_metrics, run_das_visuals, save_layerwise_probe_results, plot_layerwise_probe_f1, plot_pca_macro_f1_by_layer_and_k
 
 def load_yaml(path): # "config.yaml"
     with open(path, "r", encoding="utf-8") as f:
@@ -88,9 +88,13 @@ def run_main(cfg):
     # Probing using lg
     probe_results = run_layerwise_probe(train_items, test_items)
 
-    save_probe_results(probe_results, out_path="./results/probing/layerwise_probe_results.csv")
+    probe_df = save_layerwise_probe_results(probe_results, out_path="./results/probing/layerwise_probe_results.csv")
 
-    plot_layerwise_probe(probe_results, out_path="./results/probing/layerwise_probe_accuracy.png")
+    plot_layerwise_probe_f1(probe_df, out_path="./results/probing/layerwise_probe_macro_f1.png")
+
+    # save_probe_results(probe_results, out_path="./results/probing/layerwise_probe_results.csv")
+
+    # plot_layerwise_probe(probe_results, out_path="./results/probing/layerwise_probe_accuracy.png")
 
     """
     from pca import run_hidden_pca
@@ -99,6 +103,7 @@ def run_main(cfg):
     # hs_pca_results = run_hidden_pca(train_items, test_items)
     # print(hs_pca_results)
     pca_df = run_multi_layer_pca(train_items, test_items)
+    plot_pca_macro_f1_by_layer_and_k(pca_df, out_path="./results/pca/pca_macro_f1_by_layer_and_k.png")
 
     """
     from visualization import run_pca_visuals

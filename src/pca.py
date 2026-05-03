@@ -1,6 +1,6 @@
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, f1_score, classification_report
 from probing import build_layer_xy
 import pandas as pd
 import numpy as np
@@ -25,7 +25,11 @@ def pca_classification(x_train, y_train, x_test, y_test):
 
     y_pred = clf.predict(x_test_pca)
 
-    print("Test accuracy:", accuracy_score(y_test, y_pred))
+    acc = accuracy_score(y_test, y_pred)
+    macro_f1 = f1_score(y_test, y_pred, average="macro")
+
+    print("Test accuracy:", acc)
+    print("Test macro F1:", macro_f1)
     print(classification_report(y_test, y_pred))
 
     clf_raw = LogisticRegression(max_iter=2000)
@@ -33,7 +37,11 @@ def pca_classification(x_train, y_train, x_test, y_test):
 
     y_pred_raw = clf_raw.predict(x_test)
 
-    print("Raw 10-d contour accuracy:", accuracy_score(y_test, y_pred_raw))
+    raw_acc = accuracy_score(y_test, y_pred_raw)
+    raw_macro_f1 = f1_score(y_test, y_pred_raw, average="macro")
+
+    print("Raw 10-d contour accuracy:", raw_acc)
+    print("Raw 10-d contour macro F1:", raw_macro_f1)
     print(classification_report(y_test, y_pred_raw))
 
 def pca_classification_aggregate(x_train, y_train, x_test, y_test):
@@ -50,10 +58,11 @@ def pca_classification_aggregate(x_train, y_train, x_test, y_test):
         pred = clf.predict(Xte)
 
         acc = accuracy_score(y_test, pred)
+        macro_f1 = f1_score(y_test, pred, average="macro")
         var = pca.explained_variance_ratio_.sum()
 
-        results.append((k, var, acc))
-        print(f"k={k:2d} | var={var:.4f} | acc={acc:.4f}")
+        results.append((k, var, acc, macro_f1))
+        print(f"k={k:2d} | var={var:.4f} | acc={acc:.4f} | macro_f1={macro_f1:.4f}")
 
     print(pca.components_[0])
     print(pca.components_[1])
@@ -68,6 +77,7 @@ PCA probing using hidden states from the model
 def run_hidden_pca(train_items, test_items, layer_idx=12, k_list=None):
     """
     Run PCA-subspace classification for one wav2vec layer.
+    Reports both accuracy and macro F1.
     """
     if k_list is None:
         k_list = [1, 2, 3, 5, 10, 20, 50, 100, 200, 400, 768]
@@ -89,6 +99,7 @@ def run_hidden_pca(train_items, test_items, layer_idx=12, k_list=None):
             y_pred = clf.predict(x_test)
 
             acc = accuracy_score(y_test, y_pred)
+            macro_f1 = f1_score(y_test, y_pred, average="macro")
             var = 1.0
 
             results.append({
@@ -96,9 +107,13 @@ def run_hidden_pca(train_items, test_items, layer_idx=12, k_list=None):
                 "k": k,
                 "explained_variance": var,
                 "accuracy": acc,
+                "macro_f1": macro_f1,
             })
 
-            print(f"k={k:3d} | var={var:.4f} | acc={acc:.4f} | RAW")
+            print(
+                f"k={k:3d} | var={var:.4f} | "
+                f"acc={acc:.4f} | macro_f1={macro_f1:.4f} | RAW"
+            )
             continue
 
         pca = PCA(n_components=k)
@@ -110,6 +125,7 @@ def run_hidden_pca(train_items, test_items, layer_idx=12, k_list=None):
         y_pred = clf.predict(x_test_pca)
 
         acc = accuracy_score(y_test, y_pred)
+        macro_f1 = f1_score(y_test, y_pred, average="macro")
         var = pca.explained_variance_ratio_.sum()
 
         results.append({
@@ -117,9 +133,13 @@ def run_hidden_pca(train_items, test_items, layer_idx=12, k_list=None):
             "k": k,
             "explained_variance": var,
             "accuracy": acc,
+            "macro_f1": macro_f1,
         })
 
-        print(f"k={k:3d} | var={var:.4f} | acc={acc:.4f}")
+        print(
+            f"k={k:3d} | var={var:.4f} | "
+            f"acc={acc:.4f} | macro_f1={macro_f1:.4f}"
+        )
 
     return results
 
@@ -178,9 +198,11 @@ def fit_pca_probe(train_items, test_items, layer_idx=6, n_components=100):
 
     y_pred = probe.predict(x_test)
     acc = accuracy_score(y_test, y_pred)
+    macro_f1 = f1_score(y_test, y_pred, average="macro")
 
     print(f"Layer {layer_idx} | PCA dims = {n_components}")
     print("Probe accuracy on original hidden states:", acc)
+    print("Probe macro F1 on original hidden states:", macro_f1)
     print(classification_report(y_test, y_pred))
 
     return {
